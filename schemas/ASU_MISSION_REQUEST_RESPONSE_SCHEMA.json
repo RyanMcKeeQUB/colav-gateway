@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "mission_id": {
+        "type": "string",
+        "description": "Unique identifier for the mission being responded to"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["success", "error"],
+        "description": "Status of the mission request"
+      },
+      "message": {
+        "type": "string",
+        "description": "Additional information or error message"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of the response"
+      }
+    },
+    "required": ["mission_id", "status"],
+    "additionalProperties": false
+  }
+  

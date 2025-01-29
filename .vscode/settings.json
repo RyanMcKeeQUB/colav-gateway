@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "/home/ryan/colav_ws/src/COLAV-Server/colav_vector_map_server/.colav_vector_map_venv/bin/python3",
+    "python.autoComplete.extraPaths": [
+        "/home/ryan/ros2_ws/install/custom_planner_server/lib/python3.10/site-packages",
+        "/home/ryan/ros2_ws/install/custom_planner_interfaces/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

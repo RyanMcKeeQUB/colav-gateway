@@ -1,0 +1,44 @@
+{
+  "endpoint_config": {
+    "mission_request": {
+      "host": "0.0.0.0",
+      "port": 7000,
+      "protocol": "udp"
+    },
+    "mission_response": {
+      "host": "0.0.0.0",
+      "port": 7001,
+      "protocol": "udp"
+    },
+    "agent_config_output": {
+      "host": "0.0.0.0",
+      "port": 7100,
+      "protocol": "udp"
+    },
+    "ob_metadata_output": {
+      "host": "0.0.0.0", 
+      "port": 7200,
+      "protocol": "udp"
+    },
+    "controller_input": {
+      "host": "0.0.0.0",
+      "port": 7300,
+      "protocol": "udp"
+    },
+    "controller_feedback": {
+      "host": "0.0.0.0",
+      "port": 7301,
+      "protocol": "udp"
+    }
+  },
+  "tmp_osm_dir": "/var/colav/mission_osms/",
+  "vessel_config_file": "/var/colav/vessel_config/",
+  "env_file": "",
+  "ros2_pkgs": {
+    "test": "test"
+  },
+  "logging": {
+    "level": "INFO",
+    "log_rel_file": "/logs.transmissions.log"
+  }
+}
