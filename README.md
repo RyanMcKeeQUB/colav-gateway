@@ -1,4 +1,4 @@
-# COLAV-Gateway
+# COLAV Gateway
 COLAV Gateway: A UDP-to-ROS bridge for mission requests, agent configurations obstacles updates and controller feedback.
 Colav gateway is a ros-based application that listens for incominb UDP messages on predefined ports for: 
 - Mission Requests
