@@ -7,6 +7,10 @@ import json
 import os
 import rclpy.logging
 
+from colav_interfaces.msg import MissionRequest
+from colav_interfaces.msg import AgentConfiguration
+from colav_interfaces.msg import ObstaclesConfiguration
+
 logger = rclpy.logging.get_logger("colav_gateway_logger")
 workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -19,6 +23,26 @@ class ColavGateway(Node):
         super().__init__("colav_gateway")
         self.get_logger().info("colav_gateway node started!")
         self.__init_colav__(config=config)
+
+    def _init_mission_request_topic(self): 
+        mission_request_topic = 'colav/mission_request'
+        self._mission_publisher = self.create_publisher(
+            MissionRequest, 
+            mission_request_topic,
+            10
+        )
+        agent_state_update_topic = 'colav/agent/state'
+        self._agent_config_publisher = self.create_publisher(
+            AgentConfiguration,
+            agent_state_update_topic,
+            10 
+        )
+        obstacles_update_topic = 'colav/obstacles/state'
+        self._obstacles_state_update_topic = self.create_publisher(
+            ObstaclesConfiguration,
+            obstacles_update_topic, 
+            10
+        )
 
     def __init_colav__(self, config: json):
         # Initiates colav gateway which begins listening for mission requests.

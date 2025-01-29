@@ -5,8 +5,7 @@ from enum import Enum
 import os
 import json
 from jsonschema import validate, ValidationError
-from typing import Tuple
-
+from typing import Tuple, Optional
 
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "schemas/")
 ROS2_SRV_ROUTING_TABLE = {
@@ -50,38 +49,96 @@ class MissionRequestNode(Node):
         self.tmp_osm_dir = tmp_osm_dir
         self.ws_dir = workspace_dir
 
-        self._sync_mission_req()
+        self._listen_for_mission_request()
 
-    def _sync_mission_req(self):
-        # create a socket to listen for mission requests
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as mission_socket:
-            mission_socket.bind(("", 7000))
-            while True:
+    class SocketBindError(Exception):
+        """Custom exception for socket binding errors."""
+        def __init__(self, address, message="Socket is already bound to the address"):
+            self.address = address
+            self.message = message
+            super().__init__(f"{message}: {address}")
+    
+    def create_socket(protocol: str, bind_address: Optional[Tuple[str, int]] = None):
+        """Creates a socket with the provided protocol and address."""
+        sock = None
+        
+        try: 
+            if protocol == 'UDP':
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            elif protocol == 'TCP':
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            else:
+                print('Invalid protocol for socket.')
+                return sock
+            
+            if bind_address is not None: 
+                    sock.bind((bind_address[0], bind_address[1]))
+            
+            return sock
+        
+        except socket.error as e:
+            if e.errno == socket.errno.EADDRINUSE:
+                raise MissionRequestNode.SocketBindError(bind_address) from e
+            else:
+                raise e
+
+    def _listen_for_mission_request(self, msg: str) -> bool: # NO THREAD FOR THIS METHOD
+        """
+        Sends the mission request message to the mission request endpoint at regular intervals until the motion planner confirms mission received.
+
+        Args:
+            mission_request_msg (str): The mission request message to be sent.
+
+        Raises:
+            ValueError: If the response indicates that the mission request contained invalid parameters.
+            TimeoutError: If the maximum number of mission request attempts is exceeded.
+            BrokenPipeError: If the connection was closed by the other end.
+            Exception: For any other exceptions that occur during the process.
+        """
+        mission_started = False
+        request_sock = MissionRequestNode.create_socket(protocol=self.mission_request_endpoint['protocol'].upper())
+        response_sock = MissionRequestNode.create_socket(bind_address=self.mission_response_endpoint['address'], protocol=self.mission_request_endpoint['protocol'].upper())
+
+        try:
+            # serialized_msg = msgpack.packb(json.loads(msg)) # cant deserialise in matlab because imports not allowed in matlab system blocks
+            encoded_msg = self._encode_udp_msg(msg=msg)
+            request_attempts = 0
+            print(f"[INFO] Publishing mission request to endpoint {self.mission_request_endpoint['address']} with the following message:\n{msg}")
+            
+            while request_attempts <= self.MAX_ATTEMPTS:
+                # Send the mission request message
+                if self.mission_request_endpoint['protocol'].upper() == 'UDP':
+                    request_sock.sendto(encoded_msg, (self.mission_request_endpoint['address'][0], self.mission_request_endpoint['address'][1]))
+
+                # Listen for a response
+                response_sock.settimeout(self.INTERVAL)
                 try:
-                    mission_socket.settimeout(5)
-                    data, _ = mission_socket.recvfrom(1024)
-                    msg = data.decode("utf-8")
-                    print(f"Received message: {msg}")
-                    break  # Exit the loop if a message is received
-
+                    data, addr = response_sock.recvfrom(self.BUFFER_SIZE)
+                    response_msg = extract_udp_msg(data)
+                    print(f"Received response from {addr}: {response_msg}")
+                    if response_msg == "MISSION_REQUEST_RECEIVED:STARTING":
+                        print(f"[INFO] Mission request received. Motion planner is starting the mission.\n{'-'*100}\n")
+                        mission_started = True
+                        break
+                    elif response_msg == "MISSION_REQUEST_RECEIVED:INVALID_PARAMS":
+                        raise ValueError(f"{response_msg}: The mission request contained invalid parameters.")
+                    else:
+                        print(f"Unknown response received: {response_msg}, Trying again....")
                 except socket.timeout:
-                    self._exception_msg = f"{self.__class__.__name__}::{self._listen_for_controller_feedback.__name__} : No response from controller feedback endpoint within timeout period: {str(self._response_timeout)}."
-                    self._exception_event.set()
-                except Exception as e:
-                    self._exception_msg = f"{self.__class__.__name__}::{self._listen_for_controller_feedback.__name__} : An error occurred while listening for controller feedback: {str(e)}"
-                    self._exception_event.set()
-                    break
+                    print(f"No response to mission request publish attempt: {str(request_attempts + 1)}/{str(self.MAX_ATTEMPTS)}, retrying...")
+                finally:
+                    request_attempts += 1
 
-            while True:
-                conn, addr = mission_socket.accept()
-                self.get_logger().info(
-                    f"Mission Request socket {(self.HOST, self.REQ_PORT)} connected to be {addr}. Waiting for mission data"
-                )
-                with conn:
-
-                    mission_data = conn.recv(1024)
-                    self._on_mission_req(mission_data)
-                    break
+            if request_attempts >= self.MAX_ATTEMPTS:
+                raise TimeoutError("Exceeded maximum number of Mission Request Attempts.")
+        except BrokenPipeError:
+            print("BrokenPipeError: The connection was closed by the other end.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            request_sock.close()
+            response_sock.close()
+            return mission_started
 
     def _on_mission_req(self, mission_data):
         if not mission_data:
