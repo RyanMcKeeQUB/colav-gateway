@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["-c", "/home/ryan/colav_ws/src/COLAV-Server/colav_pkgs/colav_gateway/config/colav_gateway_config.json"],
+            "args": ["-c", "/home/$USER/Documents/ColavProject/colav_ws/src/ColavServer/COLAV-Gateway/config/colav_gateway_config.json"],
             "console": "integratedTerminal"
         }
     ]

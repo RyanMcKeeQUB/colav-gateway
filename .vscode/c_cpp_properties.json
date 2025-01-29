@@ -6,8 +6,6 @@
         "limitSymbolsToIncludedHeaders": false
       },
       "includePath": [
-        "/home/ryan/ros2_ws/install/nav2_custom_planner_client/include/**",
-        "/home/ryan/ros2_ws/install/custom_planner_interfaces/include/**",
         "/opt/ros/humble/include/**",
         "/usr/include/**"
       ],
