@@ -82,9 +82,10 @@ class MissionRequestNode(Node):
             else:
                 raise e
 
-    def _listen_for_mission_request(self, msg: str) -> bool: # NO THREAD FOR THIS METHOD
+    def _listen_for_mission_request(self) -> bool: # NO THREAD FOR THIS METHOD
         """
-        Sends the mission request message to the mission request endpoint at regular intervals until the motion planner confirms mission received.
+        listens for a mission request, if a mission request is received. This function starts another thread which will being listening 
+        for global updates and publishing them to their respective topics.
 
         Args:
             mission_request_msg (str): The mission request message to be sent.

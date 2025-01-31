@@ -9,9 +9,14 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["-c", "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/ColavServer/COLAV-Gateway/config/colav_gateway_config.json"],
+            "args": ["-c", "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/config/colav_gateway_config.json"],
             "console": "integratedTerminal", 
-            "python": "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/ColavServer/.colav_server_venv/bin/python3.10"
+            // "python": "/opt/ros/humble/lib/python3.10",
+            "env": {
+                "ROS_DISTRO": "humble",
+                "ROS_ROOT": "/opt/ros/humble/share/ros",
+                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages"
+            }
         }
     ]
 }
