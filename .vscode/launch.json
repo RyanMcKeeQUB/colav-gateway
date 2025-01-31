@@ -15,7 +15,7 @@
             "env": {
                 "ROS_DISTRO": "humble",
                 "ROS_ROOT": "/opt/ros/humble/share/ros",
-                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages"
+                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/bin"
             }
         }
     ]
