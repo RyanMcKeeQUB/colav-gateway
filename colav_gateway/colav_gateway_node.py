@@ -8,6 +8,9 @@ import json
 import os
 import rclpy.logging
 from enum import Enum
+import sys
+
+import missionRequest_pb2
 
 from colav_interfaces.msg import Mission
 import numpy as np
@@ -77,43 +80,67 @@ class ColavGatewayNode(Node):
             """Handle incoming datagrams."""
             print(f"Received {data} from {addr}")
             try: 
-                header = self.extract_header_and_payload(data)
-                print (header[0])
-                print (header[1])
-                print (header[2])
-                print (header[3])
+                mission_request_msg = missionRequest_pb2.MissionRequest()
+                mission_request_msg.ParseFromString(data)
 
-                if (header[0] == 'MISSION_REQUEST'):
-                    try:    
-                        json_payload = json.loads(header[-1])
+                ros_mission_msg = Mission()
+                ros_mission_msg.mission_tag = mission_request_msg.tag
+                ros_mission_msg.mission_sent_timestamp = mission_request_msg.mission_start_timestamp
+                ros_mission_msg.vessel.tag = mission_request_msg.vessel.tag
+                ros_mission_msg.vessel.type = missionRequest_pb2.MissionRequest.Vessel.VesselType.Name(mission_request_msg.vessel.type)
+                ros_mission_msg.vessel.dynamic_constraints.max_acceleration = mission_request_msg.vessel.vessel_constraints.max_acceleration
+                ros_mission_msg.vessel.dynamic_constraints.max_deceleration = mission_request_msg.vessel.vessel_constraints.max_deceleration
+                ros_mission_msg.vessel.dynamic_constraints.max_velocity = mission_request_msg.vessel.vessel_constraints.max_velocity
+                ros_mission_msg.vessel.dynamic_constraints.min_velocity = mission_request_msg.vessel.vessel_constraints.min_velocity
+                ros_mission_msg.vessel.dynamic_constraints.max_yaw_rate = mission_request_msg.vessel.vessel_constraints.max_yaw_rate
 
-                        mission_msg = Mission()
-                        mission_msg.mission_tag = json_payload["tag"]
-                        mission_msg.mission_sent_timestamp = json_payload["timestamp"]
-                        mission_msg.vessel.tag = json_payload["vessel"]["tag"]
-                        mission_msg.vessel.type = json_payload["vessel"]["type"]
-                        mission_msg.vessel.dynamic_constraints.max_acceleration = float(json_payload["vessel"]["constraints"]["max_acceleration"])
-                        mission_msg.vessel.dynamic_constraints.max_deceleration = float(json_payload["vessel"]["constraints"]["max_deceleration"])
-                        mission_msg.vessel.dynamic_constraints.max_velocity = float(json_payload["vessel"]['constraints']["max_velocity"])
-                        mission_msg.vessel.dynamic_constraints.min_velocity = float(json_payload["vessel"]['constraints']['min_velocity'])
-                        mission_msg.vessel.dynamic_constraints.max_yaw_rate = float(json_payload['vessel']['constraints']['max_yaw_rate'])
+                ros_mission_msg.vessel.geometry.acceptance_radius = mission_request_msg.vessel.vessel_geometry.safety_threshold
+                points_list = []
+                for point in mission_request_msg.vessel.vessel_geometry.polyshape_points:
+                    points_list.append(Point32(x=point.x, y=point.y, z=point.z))
+                ros_mission_msg.vessel.geometry.polyshape.points = points_list
 
-                        mission_msg.vessel.geometry.acceptance_radius = float(json_payload["vessel"]["geometry"]["acceptance_radius"])
+                ros_mission_msg.mission_init_position = Point32(x=mission_request_msg.mission_init_position.x, y=mission_request_msg.mission_init_position.y, z=mission_request_msg.mission_init_position.z) 
+                ros_mission_msg.mission_goal_position = Point32(x=mission_request_msg.mission_goal_position.x, y=mission_request_msg.mission_goal_position.y, z=mission_request_msg.mission_goal_position.z)
+                # ros_mission_msg.mission_goal_acceptance_radius = mission_request_msg.mission_goal_acceptance_radius TODO: Need to add this field to the protobuf msg
+                self._mission_publisher.publish(ros_mission_msg)
+                # header = self.extract_header_and_payload(data)
+                # print (header[0])
+                # print (header[1])
+                # print (header[2])
+                # print (header[3])
+
+                # if (header[0] == 'MISSION_REQUEST'):
+                #     try:    
+                #         json_payload = json.loads(header[-1])
+
+                #         mission_msg = Mission()
+                #         mission_msg.mission_tag = json_payload["tag"]
+                #         mission_msg.mission_sent_timestamp = json_payload["timestamp"]
+                #         mission_msg.vessel.tag = json_payload["vessel"]["tag"]
+                #         mission_msg.vessel.type = json_payload["vessel"]["type"]
+                #         mission_msg.vessel.dynamic_constraints.max_acceleration = float(json_payload["vessel"]["constraints"]["max_acceleration"])
+                #         mission_msg.vessel.dynamic_constraints.max_deceleration = float(json_payload["vessel"]["constraints"]["max_deceleration"])
+                #         mission_msg.vessel.dynamic_constraints.max_velocity = float(json_payload["vessel"]['constraints']["max_velocity"])
+                #         mission_msg.vessel.dynamic_constraints.min_velocity = float(json_payload["vessel"]['constraints']['min_velocity'])
+                #         mission_msg.vessel.dynamic_constraints.max_yaw_rate = float(json_payload['vessel']['constraints']['max_yaw_rate'])
+
+                #         mission_msg.vessel.geometry.acceptance_radius = float(json_payload["vessel"]["geometry"]["acceptance_radius"])
                         
-                        mission_msg.vessel.geometry.polyshape.points = [Point32(x=float(point[0]), y=float(point[1]), z=float(point[2])) for point in np.array(json_payload["vessel"]["geometry"]["polyshape_points"], dtype=float)]
+                #         mission_msg.vessel.geometry.polyshape.points = [Point32(x=float(point[0]), y=float(point[1]), z=float(point[2])) for point in np.array(json_payload["vessel"]["geometry"]["polyshape_points"], dtype=float)]
 
-                        init_position = np.array(json_payload["mission_init_position"], dtype=float)
-                        mission_msg.mission_init_position = Point32(x=init_position[0], y=init_position[1], z=init_position[2])
-                        goal_position = np.array(json_payload["mission_goal_position"], dtype=float)
-                        mission_msg.mission_goal_position = Point32(x=goal_position[0], y=goal_position[1], z=goal_position[2]) 
+                #         init_position = np.array(json_payload["mission_init_position"], dtype=float)
+                #         mission_msg.mission_init_position = Point32(x=init_position[0], y=init_position[1], z=init_position[2])
+                #         goal_position = np.array(json_payload["mission_goal_position"], dtype=float)
+                #         mission_msg.mission_goal_position = Point32(x=goal_position[0], y=goal_position[1], z=goal_position[2]) 
 
-                        mission_msg.mission_goal_acceptance_radius = float(json_payload["mission_goal_acceptance_radius"])
-                        # mission_msg.vessel.
-                        self._mission_publisher.publish(mission_msg)
+                #         mission_msg.mission_goal_acceptance_radius = float(json_payload["mission_goal_acceptance_radius"])
+                #         # mission_msg.vessel.
+                #         self._mission_publisher.publish(mission_msg)
 
-                        # Now trigger the mission response. Mission request will be mission starting UDP message since the mission was sent successfully.
-                    except Exception as e:
-                        raise Exception(f'Error: {e}')
+                #         # Now trigger the mission response. Mission request will be mission starting UDP message since the mission was sent successfully.
+                #     except Exception as e:
+                #         raise Exception(f'Error: {e}')
             except Exception as e:
                 print (e)
                 # Trigger mission response being invalid mission request received.
