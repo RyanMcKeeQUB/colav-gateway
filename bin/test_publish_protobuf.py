@@ -45,4 +45,4 @@ serialized_msg = mission_request.SerializeToString()
 
 print(serialized_msg)
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.sendto(serialized_msg, ("0.0.0.0", 9999))
+sock.sendto(serialized_msg, ("0.0.0.0", 7000))

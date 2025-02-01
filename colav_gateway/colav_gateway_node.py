@@ -11,69 +11,77 @@ from enum import Enum
 import sys
 
 import missionRequest_pb2
+import controllerFeedback_pb2
 
-from colav_interfaces.msg import Mission
+from colav_interfaces.msg import MissionRequest
+from colav_interfaces.action import MissionExecutor
 import numpy as np
 from geometry_msgs.msg import Point32
+from rclpy.action import ActionClient
 
 logger = rclpy.logging.get_logger("colav_gateway_logger")
 workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 class ColavGatewayNode(Node):
+    """ColavGateWay acts as the gateway to the COLAV application. Listening to respective
+    UDP sockets depending on the internal state of the colav application and translating
+    the UDP Protobuf msgs to internal ros messages which will be multicast published to
+    COLAV topics.
 
+    Args:
+        Node (_type_): ROS2 Node
+    """
+
+    # TODO Need to make this a a request to action server for controller
     def __init__(self, config: json):
+        """init called when ros node starts, sets initial configuration
+        for this node and initiates gateway logic listening to mission request
+        on port assigned from config file
+
+        Args:
+            config (json): Configuration information for colav gateway"""
+
         super().__init__("colav_gateway")
         self.get_logger().info("colav_gateway node started!")
-        # self._init_colav_topics()
 
-        self.host = "0.0.0.0"
-        self.port = 7000
-        self.config = config  # Store the config for later use
-
+        self._config = config
+        self._topic_namespace = "colav/"
+        self._mission_request_topic_name = f"{self._topic_namespace}mission_request"
         mission_request_topic = "colav/mission_request"
-        self._mission_publisher = self.create_publisher(
-            Mission, mission_request_topic, 10
+
+        self.ctrl_action_client = ActionClient(
+            self, MissionExecutor, "execute_colav_mission"
         )
 
     async def listen_for_mission_request(self):
-        """Starts listening for incoming UDP packets"""
+        """Listens for incoming protobuf mission_request_pbf2 smg"""
         self.get_logger().info("Initiating COLAV Mission Request Listener.")
 
         loop = asyncio.get_running_loop()
+        host = self._config["endpoint_config"]["mission_request"]["host"]
+        port = self._config["endpoint_config"]["mission_request"]["port"]
         transport, protocol = await loop.create_datagram_endpoint(
-            lambda: ColavGatewayNode.UDPProtocol(self._mission_publisher),
-            local_addr=("0.0.0.0", 9999),  # Adjust the port as needed
+            lambda: ColavGatewayNode.MissionRequestUDPProtocol(
+                self.ctrl_action_client, self.get_logger()
+            ),
+            local_addr=(host, port),  # Adjust the port as needed
         )
         return transport, protocol
 
-    class UDPProtocol(asyncio.DatagramProtocol):
+    class MissionRequestUDPProtocol(asyncio.DatagramProtocol):
+        """MissionRequestUDPProtocol Is a async udp class that enables real time
+        mission requst socket handing converting protobuf mission reqeusts
+        to ros message and executing missions for colav.
 
-        class ColavUDPProtocols(Enum):
-            MISSION_REQUEST = "MISSION_REQUEST"
-            OBSTACLES_UPDATE = "OBSTACLES_UPDATE"
-            AGENT_UPDATE = "AGENT_UPDATE"
+        Args:
+            asyncio (_type_): _description_
+        """
 
-            @staticmethod
-            def is_protocol(protocol: str):
-                match protocol:
-                    case "MISSION_REQUEST":
-                        return (
-                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.MISSION_REQUEST
-                        )
-                    case "OBSTACLES_UPDATE":
-                        return (
-                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.OBSTACLES_UPDATE
-                        )
-                    case "AGENT_UPDATE":
-                        return (
-                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.AGENT_UPDATE
-                        )
-                    case _:
-                        raise Exception("Invalid UDP packet procotol")
-
-        def __init__(self, mission_publisher):
-            self._mission_publisher = mission_publisher
+        def __init__(self, action_client, logger):
+            """"""
+            self._action_client = action_client
+            self._logger = logger
 
         def connection_made(self, transport):
             """This method is called when the UDP connection is established."""
@@ -86,7 +94,7 @@ class ColavGatewayNode(Node):
                 mission_request_msg = missionRequest_pb2.MissionRequest()
                 mission_request_msg.ParseFromString(data)
 
-                ros_mission_msg = Mission()
+                ros_mission_msg = MissionRequest()
                 ros_mission_msg.mission_tag = mission_request_msg.tag
                 ros_mission_msg.mission_sent_timestamp = (
                     mission_request_msg.mission_start_timestamp
@@ -134,47 +142,21 @@ class ColavGatewayNode(Node):
                     z=mission_request_msg.mission_goal_position.z,
                 )
                 # ros_mission_msg.mission_goal_acceptance_radius = mission_request_msg.mission_goal_acceptance_radius TODO: Need to add this field to the protobuf msg
-                self._mission_publisher.publish(ros_mission_msg)
-                # header = self.extract_header_and_payload(data)
-                # print (header[0])
-                # print (header[1])
-                # print (header[2])
-                # print (header[3])
-
-                # if (header[0] == 'MISSION_REQUEST'):
-                #     try:
-                #         json_payload = json.loads(header[-1])
-
-                #         mission_msg = Mission()
-                #         mission_msg.mission_tag = json_payload["tag"]
-                #         mission_msg.mission_sent_timestamp = json_payload["timestamp"]
-                #         mission_msg.vessel.tag = json_payload["vessel"]["tag"]
-                #         mission_msg.vessel.type = json_payload["vessel"]["type"]
-                #         mission_msg.vessel.dynamic_constraints.max_acceleration = float(json_payload["vessel"]["constraints"]["max_acceleration"])
-                #         mission_msg.vessel.dynamic_constraints.max_deceleration = float(json_payload["vessel"]["constraints"]["max_deceleration"])
-                #         mission_msg.vessel.dynamic_constraints.max_velocity = float(json_payload["vessel"]['constraints']["max_velocity"])
-                #         mission_msg.vessel.dynamic_constraints.min_velocity = float(json_payload["vessel"]['constraints']['min_velocity'])
-                #         mission_msg.vessel.dynamic_constraints.max_yaw_rate = float(json_payload['vessel']['constraints']['max_yaw_rate'])
-
-                #         mission_msg.vessel.geometry.acceptance_radius = float(json_payload["vessel"]["geometry"]["acceptance_radius"])
-
-                #         mission_msg.vessel.geometry.polyshape.points = [Point32(x=float(point[0]), y=float(point[1]), z=float(point[2])) for point in np.array(json_payload["vessel"]["geometry"]["polyshape_points"], dtype=float)]
-
-                #         init_position = np.array(json_payload["mission_init_position"], dtype=float)
-                #         mission_msg.mission_init_position = Point32(x=init_position[0], y=init_position[1], z=init_position[2])
-                #         goal_position = np.array(json_payload["mission_goal_position"], dtype=float)
-                #         mission_msg.mission_goal_position = Point32(x=goal_position[0], y=goal_position[1], z=goal_position[2])
-
-                #         mission_msg.mission_goal_acceptance_radius = float(json_payload["mission_goal_acceptance_radius"])
-                #         # mission_msg.vessel.
-                #         self._mission_publisher.publish(mission_msg)
-
-                #         # Now trigger the mission response. Mission request will be mission starting UDP message since the mission was sent successfully.
-                #     except Exception as e:
-                #         raise Exception(f'Error: {e}')
+                # self._mission_publisher.publish(ros_mission_msg)
+                send_goal_future = self._action_client.send_goal_async(
+                    ros_mission_msg, feedback_callback=self.feedback_callback
+                )
+                send_goal_future.add_done_callback(self.goal_response_callback)
             except Exception as e:
                 print(e)
-                # Trigger mission response being invalid mission request received.
+
+        def feedback_callback(self, feedback_msg):
+            feedback = feedback_msg.feedback
+            self._logger.info(
+                f"Controller feedback received, packing feedback in protobuf to send via udp"
+            )
+            # need to fill out different parts of the message here
+            feedback_protobuf = controllerFeedback_pb2.ControllerFeedback()
 
         def extract_header_and_payload(self, data):
             try:
