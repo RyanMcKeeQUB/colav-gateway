@@ -6,13 +6,13 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["-c", "${workspaceFolder}/src/colav_server/colav_gateway/config/colav_gateway_config.json"],
+            "args": ["-c", "${workspaceFolder}/config/colav_gateway_config.json"],
             "console": "integratedTerminal", 
-            // "python": "/opt/ros/humble/lib/python3.10",
+            "python": "/usr/bin/python3",
             "env": {
                 "ROS_DISTRO": "humble",
                 "ROS_ROOT": "/opt/ros/humble/share/ros",
-                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:${workspaceFolder}/src/colav_server/colav_gateway/bin"
+                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:~/ros2_ws/src/colav_server/colav_gateway/bin/missionRequest_pb2.py"
             }
         }
     ]

@@ -7,7 +7,9 @@ mission_request.tag = "MISSION"
 mission_request.mission_start_timestamp = "12345"
 
 mission_request.vessel.tag = "EF12_24"
-mission_request.vessel.type = missionRequest_pb2.MissionRequest.Vessel.VesselType.HYDROFOIL
+mission_request.vessel.type = (
+    missionRequest_pb2.MissionRequest.Vessel.VesselType.HYDROFOIL
+)
 
 mission_request.vessel.vessel_constraints.max_acceleration = 2.0
 mission_request.vessel.vessel_constraints.max_deceleration = -1.0
@@ -21,7 +23,7 @@ x = 1
 y = 1
 z = 0
 # Define the polyshape of the vessel
-for i in range(1, 5): 
+for i in range(1, 5):
     point = mission_request.vessel.vessel_geometry.polyshape_points.add()
     point.x = float(x)
     point.y = float(y)
@@ -33,15 +35,14 @@ mission_request.mission_init_position.x = float(1.0)
 mission_request.mission_init_position.y = float(1.0)
 mission_request.mission_init_position.z = float(0.0)
 
-mission_request.mission_goal_position.x = float(1.0) 
-mission_request.mission_goal_position.z = float(1.0) 
-mission_request.mission_goal_position.y = float(1.0) 
+mission_request.mission_goal_position.x = float(1.0)
+mission_request.mission_goal_position.z = float(1.0)
+mission_request.mission_goal_position.y = float(1.0)
 
 # mission_request.mission_goal_acceptance_radius = float(5.0)
 
 serialized_msg = mission_request.SerializeToString()
 
-print (serialized_msg)
+print(serialized_msg)
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.sendto(serialized_msg, ("0.0.0.0", 9999))
-
