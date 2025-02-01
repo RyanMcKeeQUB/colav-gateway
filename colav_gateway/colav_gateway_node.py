@@ -33,9 +33,7 @@ class ColavGatewayNode(Node):
 
         mission_request_topic = "colav/mission_request"
         self._mission_publisher = self.create_publisher(
-            Mission, 
-            mission_request_topic, 
-            10
+            Mission, mission_request_topic, 10
         )
 
     async def listen_for_mission_request(self):
@@ -44,11 +42,11 @@ class ColavGatewayNode(Node):
 
         loop = asyncio.get_running_loop()
         transport, protocol = await loop.create_datagram_endpoint(
-            lambda: ColavGatewayNode.UDPProtocol(self._mission_publisher), 
-            local_addr=('0.0.0.0', 9999)  # Adjust the port as needed
+            lambda: ColavGatewayNode.UDPProtocol(self._mission_publisher),
+            local_addr=("0.0.0.0", 9999),  # Adjust the port as needed
         )
         return transport, protocol
-    
+
     class UDPProtocol(asyncio.DatagramProtocol):
 
         class ColavUDPProtocols(Enum):
@@ -57,16 +55,22 @@ class ColavGatewayNode(Node):
             AGENT_UPDATE = "AGENT_UPDATE"
 
             @staticmethod
-            def is_protocol(protocol:str):
+            def is_protocol(protocol: str):
                 match protocol:
                     case "MISSION_REQUEST":
-                        return ColavGatewayNode.UDPProtocol.ColavUDPProtocols.MISSION_REQUEST
+                        return (
+                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.MISSION_REQUEST
+                        )
                     case "OBSTACLES_UPDATE":
-                        return ColavGatewayNode.UDPProtocol.ColavUDPProtocols.OBSTACLES_UPDATE
+                        return (
+                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.OBSTACLES_UPDATE
+                        )
                     case "AGENT_UPDATE":
-                        return ColavGatewayNode.UDPProtocol.ColavUDPProtocols.AGENT_UPDATE 
+                        return (
+                            ColavGatewayNode.UDPProtocol.ColavUDPProtocols.AGENT_UPDATE
+                        )
                     case _:
-                        raise Exception('Invalid UDP packet procotol')
+                        raise Exception("Invalid UDP packet procotol")
 
         def __init__(self, mission_publisher):
             self._mission_publisher = mission_publisher
@@ -75,33 +79,60 @@ class ColavGatewayNode(Node):
             """This method is called when the UDP connection is established."""
             self.transport = transport
 
-
         def datagram_received(self, data, addr):
             """Handle incoming datagrams."""
             print(f"Received {data} from {addr}")
-            try: 
+            try:
                 mission_request_msg = missionRequest_pb2.MissionRequest()
                 mission_request_msg.ParseFromString(data)
 
                 ros_mission_msg = Mission()
                 ros_mission_msg.mission_tag = mission_request_msg.tag
-                ros_mission_msg.mission_sent_timestamp = mission_request_msg.mission_start_timestamp
+                ros_mission_msg.mission_sent_timestamp = (
+                    mission_request_msg.mission_start_timestamp
+                )
                 ros_mission_msg.vessel.tag = mission_request_msg.vessel.tag
-                ros_mission_msg.vessel.type = missionRequest_pb2.MissionRequest.Vessel.VesselType.Name(mission_request_msg.vessel.type)
-                ros_mission_msg.vessel.dynamic_constraints.max_acceleration = mission_request_msg.vessel.vessel_constraints.max_acceleration
-                ros_mission_msg.vessel.dynamic_constraints.max_deceleration = mission_request_msg.vessel.vessel_constraints.max_deceleration
-                ros_mission_msg.vessel.dynamic_constraints.max_velocity = mission_request_msg.vessel.vessel_constraints.max_velocity
-                ros_mission_msg.vessel.dynamic_constraints.min_velocity = mission_request_msg.vessel.vessel_constraints.min_velocity
-                ros_mission_msg.vessel.dynamic_constraints.max_yaw_rate = mission_request_msg.vessel.vessel_constraints.max_yaw_rate
+                ros_mission_msg.vessel.type = (
+                    missionRequest_pb2.MissionRequest.Vessel.VesselType.Name(
+                        mission_request_msg.vessel.type
+                    )
+                )
+                ros_mission_msg.vessel.dynamic_constraints.max_acceleration = (
+                    mission_request_msg.vessel.vessel_constraints.max_acceleration
+                )
+                ros_mission_msg.vessel.dynamic_constraints.max_deceleration = (
+                    mission_request_msg.vessel.vessel_constraints.max_deceleration
+                )
+                ros_mission_msg.vessel.dynamic_constraints.max_velocity = (
+                    mission_request_msg.vessel.vessel_constraints.max_velocity
+                )
+                ros_mission_msg.vessel.dynamic_constraints.min_velocity = (
+                    mission_request_msg.vessel.vessel_constraints.min_velocity
+                )
+                ros_mission_msg.vessel.dynamic_constraints.max_yaw_rate = (
+                    mission_request_msg.vessel.vessel_constraints.max_yaw_rate
+                )
 
-                ros_mission_msg.vessel.geometry.acceptance_radius = mission_request_msg.vessel.vessel_geometry.safety_threshold
+                ros_mission_msg.vessel.geometry.acceptance_radius = (
+                    mission_request_msg.vessel.vessel_geometry.safety_threshold
+                )
                 points_list = []
-                for point in mission_request_msg.vessel.vessel_geometry.polyshape_points:
+                for (
+                    point
+                ) in mission_request_msg.vessel.vessel_geometry.polyshape_points:
                     points_list.append(Point32(x=point.x, y=point.y, z=point.z))
                 ros_mission_msg.vessel.geometry.polyshape.points = points_list
 
-                ros_mission_msg.mission_init_position = Point32(x=mission_request_msg.mission_init_position.x, y=mission_request_msg.mission_init_position.y, z=mission_request_msg.mission_init_position.z) 
-                ros_mission_msg.mission_goal_position = Point32(x=mission_request_msg.mission_goal_position.x, y=mission_request_msg.mission_goal_position.y, z=mission_request_msg.mission_goal_position.z)
+                ros_mission_msg.mission_init_position = Point32(
+                    x=mission_request_msg.mission_init_position.x,
+                    y=mission_request_msg.mission_init_position.y,
+                    z=mission_request_msg.mission_init_position.z,
+                )
+                ros_mission_msg.mission_goal_position = Point32(
+                    x=mission_request_msg.mission_goal_position.x,
+                    y=mission_request_msg.mission_goal_position.y,
+                    z=mission_request_msg.mission_goal_position.z,
+                )
                 # ros_mission_msg.mission_goal_acceptance_radius = mission_request_msg.mission_goal_acceptance_radius TODO: Need to add this field to the protobuf msg
                 self._mission_publisher.publish(ros_mission_msg)
                 # header = self.extract_header_and_payload(data)
@@ -111,7 +142,7 @@ class ColavGatewayNode(Node):
                 # print (header[3])
 
                 # if (header[0] == 'MISSION_REQUEST'):
-                #     try:    
+                #     try:
                 #         json_payload = json.loads(header[-1])
 
                 #         mission_msg = Mission()
@@ -126,13 +157,13 @@ class ColavGatewayNode(Node):
                 #         mission_msg.vessel.dynamic_constraints.max_yaw_rate = float(json_payload['vessel']['constraints']['max_yaw_rate'])
 
                 #         mission_msg.vessel.geometry.acceptance_radius = float(json_payload["vessel"]["geometry"]["acceptance_radius"])
-                        
+
                 #         mission_msg.vessel.geometry.polyshape.points = [Point32(x=float(point[0]), y=float(point[1]), z=float(point[2])) for point in np.array(json_payload["vessel"]["geometry"]["polyshape_points"], dtype=float)]
 
                 #         init_position = np.array(json_payload["mission_init_position"], dtype=float)
                 #         mission_msg.mission_init_position = Point32(x=init_position[0], y=init_position[1], z=init_position[2])
                 #         goal_position = np.array(json_payload["mission_goal_position"], dtype=float)
-                #         mission_msg.mission_goal_position = Point32(x=goal_position[0], y=goal_position[1], z=goal_position[2]) 
+                #         mission_msg.mission_goal_position = Point32(x=goal_position[0], y=goal_position[1], z=goal_position[2])
 
                 #         mission_msg.mission_goal_acceptance_radius = float(json_payload["mission_goal_acceptance_radius"])
                 #         # mission_msg.vessel.
@@ -142,26 +173,25 @@ class ColavGatewayNode(Node):
                 #     except Exception as e:
                 #         raise Exception(f'Error: {e}')
             except Exception as e:
-                print (e)
+                print(e)
                 # Trigger mission response being invalid mission request received.
 
         def extract_header_and_payload(self, data):
             try:
                 # Decode and strip unnecessary characters
                 decoded_data = data.decode("ascii").rstrip("\x00").strip()
-                
+
                 # Split the string by the pipe (|) and extract the first three parts
-                data_parts = decoded_data.split('|')[:4]
-                
+                data_parts = decoded_data.split("|")[:4]
+
                 # Strip any extra spaces from each part and return as a tuple
                 data = tuple(part.strip() for part in data_parts)
-                
+
                 return data
             except Exception as e:
                 print(f"Error extracting header, invalid udp received: {e}")
                 return None
 
-        
         def error_received(self, exc):
             """Handle errors (optional)."""
             print(f"Error received: {exc}")
@@ -200,7 +230,7 @@ def main():
     asyncio.set_event_loop(loop)
 
     executor = rclpy.executors.MultiThreadedExecutor()
-    
+
     # Run ROS 2 spinning in a separate thread
     loop.run_in_executor(None, lambda: rclpy.spin(node))
 
@@ -215,6 +245,7 @@ def main():
         node.destroy_node()
         rclpy.shutdown()
         loop.close()
+
 
 if __name__ == "__main__":
     logger.info("Starting colav_gateway application.")

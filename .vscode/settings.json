@@ -1,15 +1,15 @@
 {
     "python.autoComplete.extraPaths": [
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/install/colav_interfaces/local/lib/python3.10",
+        "~/ros2_ws/install/colav_interfaces/local/lib/python3.10",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages",
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/bin",
+        "${workspace_folder}/colav_gateway/bin",
     ],
     "python.analysis.extraPaths": [
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/install/colav_interfaces/local/lib/python3.10",
+        "~/ros2_ws/install/colav_interfaces/local/lib/python3.10",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages",
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/bin",
-        "./colav_gateway"
+        "${workspace_folder}/bin",
+        "${workspace_folder}/colav_gateway"
     ]
 }

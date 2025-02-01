@@ -8,7 +8,8 @@
       "includePath": [
         "/opt/ros/humble/include/**",
         "/usr/include/**",
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/install/**"
+        "~/ros2_ws/install/**",
+        "${workspace_folder}/bin/**"
       ],
       "name": "ROS",
       "intelliSenseMode": "gcc-x64",
