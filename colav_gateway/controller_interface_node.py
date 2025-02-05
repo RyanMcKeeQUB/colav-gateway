@@ -3,12 +3,12 @@ import rclpy.logging
 import os
 from colav_interfaces.msg import MissionRequest, Vessel, VesselConstraints, VesselGeometry
 from colav_interfaces.msg import CmdVelYaw, ControllerFeedback, ControlMode, ControlStatus
-
+from geometry_msgs.msg import Point32
 from colav_interfaces.msg import AgentConfig as ROSAgentConfigUpdateMSG
 from colav_interfaces.msg import ObstaclesConfig as ROSObstacleConfigUpdateMSG
 
-from agentUpdate_pb2 import AgentUpdate as ProtobufAgentCOnfigUpdate
-from obstacleUpdate_pb2 import ObstacleUpdate as ProtobufObstaclesUpdate
+from agentUpdate_pb2 import AgentUpdate as ProtobufAgentConfigUpdate
+from obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
 
 from colav_interfaces.action import MissionExecutor
 from colav_interfaces.srv import StartHybridAutomaton
@@ -30,9 +30,16 @@ workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ROS_NAMESPACE = "colav_gateway"
 NODE_NAME = "controller_interface"
 ACTION_NAME = "execute_mission"
-class ColavGatewayControllerInterface(Node):
 
+
+class ColavGatewayControllerInterface(Node):
+    """The controller interface node creates an action server which when started
+        listens interfaces with agent config updates and obstacle updates multicasting them
+        to the ros network for use by hybrid automaton is also starts the hybrid automaton 
+        closing the control loop."""
+    
     def __init__(self, config:json, mock:bool = False):
+        """init function for the ColavGatewayControllerInterface"""
         super().__init__(namespace=ROS_NAMESPACE, node_name=NODE_NAME)
         
         self._agent_config_address = ("0.0.0.0", 7100)
@@ -142,7 +149,6 @@ class ColavGatewayControllerInterface(Node):
             qos_profile=10
         )
 
-        # TODO: Need to create client to /agent_configuration first
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(self._agent_config_address)  # Ensure this is a tuple (host, port)
         sock.settimeout(1.0)  # Set the timeout once
@@ -155,7 +161,7 @@ class ColavGatewayControllerInterface(Node):
                 self.get_logger().info(f'Agent Configuration Protobuf received from {client_address}')
                 
                 try: 
-                    agent_config_protobuf = ProtobufAgentCOnfigUpdate()
+                    agent_config_protobuf = ProtobufAgentConfigUpdate()
                     agent_config_protobuf.ParseFromString(data)
 
                     ros_agent_config = ROSAgentConfigUpdateMSG()
@@ -191,15 +197,16 @@ class ColavGatewayControllerInterface(Node):
                 break  # Break on unexpected errors
 
         sock.close()  # Close the socket properly when stopping
-        # target = 10
-        # x = 0
-
-        # while x < 10: 
-        #     self.get_logger().info("listening for agent_config 1 is running")
-        #     x+=1
 
     # Example function for Task 2
     def listen_for_obstacle_config_update(self, stop_event):
+
+        obstacles_config_publisher = self.create_publisher(
+            msg_type=ROSObstacleConfigUpdateMSG,
+            topic='/obstacles_config',
+            qos_profile=10
+        )
+        
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(self._obstacle_update_address)  # Ensure this is a tuple (host, port)
         sock.settimeout(1.0)  # Set the timeout once
@@ -208,16 +215,88 @@ class ColavGatewayControllerInterface(Node):
 
         while not stop_event.is_set():  # Allows clean stopping of the loop
             try:
-                data, client_address = sock.recvfrom(1024)
+                data, client_address = sock.recvfrom(5020)
                 self.get_logger().info(f'Agent Configuration Protobuf received from {client_address}')
                 
                 try: 
-                    pass
+                    protobuf_obstacles_update = ProtobufObstaclesUpdate()
+                    protobuf_obstacles_update.ParseFromString(data)
+
+                    ros_obstacles_update = ROSObstacleConfigUpdateMSG()
+
+                    # need to iterate through protobuf obstacles adding them to ros_obstacles_update
+                    dynamic_obstacles = []
+                    from colav_interfaces.msg import DynamicObstacleConfig
+                    for dynamic_obstacle in protobuf_obstacles_update.dynamic_obstacles:
+                        ros_dynamic_obstacle = DynamicObstacleConfig()
+                        ros_dynamic_obstacle.id = dynamic_obstacle.id.tag
+                        ros_dynamic_obstacle.type = ProtobufObstaclesUpdate.ObstacleType.Name(dynamic_obstacle.id.type) 
+                        ros_dynamic_obstacle.pose.position.x = dynamic_obstacle.state.pose.position.x
+                        ros_dynamic_obstacle.pose.position.y = dynamic_obstacle.state.pose.position.y
+                        ros_dynamic_obstacle.pose.position.z = dynamic_obstacle.state.pose.position.z
+
+                        ros_dynamic_obstacle.pose.orientation.x = dynamic_obstacle.state.pose.orientation.x
+                        ros_dynamic_obstacle.pose.orientation.y = dynamic_obstacle.state.pose.orientation.y
+                        ros_dynamic_obstacle.pose.orientation.z = dynamic_obstacle.state.pose.orientation.z
+                        ros_dynamic_obstacle.pose.orientation.w = dynamic_obstacle.state.pose.orientation.w
+                        
+                        ros_dynamic_obstacle.velocity = dynamic_obstacle.state.velocity
+                        ros_dynamic_obstacle.yaw_rate = dynamic_obstacle.state.yaw_rate
+
+                        # geometry 
+                        points = []
+                        for point in dynamic_obstacle.geometry.polyshape_points:
+                            ros_point = Point32()
+                            ros_point.x = point.position.x
+                            ros_point.y = point.position.y
+                            ros_point.z = point.position.z
+                            points.append(ros_point)
+
+                        ros_dynamic_obstacle.geometry.points = points
+                        ros_dynamic_obstacle.safety_radius = dynamic_obstacle.geometry.acceptance_radius
+                        dynamic_obstacles.append(ros_dynamic_obstacle)
+                        # 
+
+                    static_obstacles = []
+                    for static_obstacle in protobuf_obstacles_update.static_obstacles:
+                        from colav_interfaces.msg import StaticObstacleConfig
+                        ros_static_obstacle = StaticObstacleConfig()    
+                        ros_static_obstacle.id = static_obstacle.id.tag
+                        ros_static_obstacle.type = ProtobufObstaclesUpdate.ObstacleType.Name(static_obstacle.id.type)
+                        ros_static_obstacle.pose.position.x = static_obstacle.pose.position.x
+                        ros_static_obstacle.pose.position.y = static_obstacle.pose.position.y
+                        ros_static_obstacle.pose.position.z = static_obstacle.pose.position.z
+
+                        ros_static_obstacle.pose.orientation.x =  static_obstacle.pose.orientation.x
+                        ros_static_obstacle.pose.orientation.y =  static_obstacle.pose.orientation.y
+                        ros_static_obstacle.pose.orientation.z =  static_obstacle.pose.orientation.z
+                        ros_static_obstacle.pose.orientation.w =  static_obstacle.pose.orientation.w
+
+                        points = []
+                        for point in static_obstacle.geometry.polyshape_points:
+                            ros_point = Point32()
+                            ros_point.x = point.position.x
+                            ros_point.y = point.position.y
+                            ros_point.z = point.position.z
+                            points.append(ros_point)
+
+                        ros_static_obstacle.geometry.points = points
+                        ros_static_obstacle.safety_radius = static_obstacle.geometry.acceptance_radius
+                        # add geometry
+
+                        static_obstacles.append(ros_static_obstacle)
+
+                    ros_obstacles_update.dynamic_obstacles = dynamic_obstacles
+                    ros_obstacles_update.static_obstacles = static_obstacles
+                    
+                    ros_obstacles_update.timestamp = protobuf_obstacles_update.timestamp
+                    ros_obstacles_update.timestep = protobuf_obstacles_update.timestep
+
+                    obstacles_config_publisher.publish(ros_obstacles_update)
                 except Exception as e: 
                     self.get_logger().warning(f"Error parsing data received...")
             except TimeoutError as e:
                 self.get_logger().warning(f"Agent configuration protobuf socket timeout.... Trying again.")
-                
 
     def listen_for_controller_feedback(self, step_event):
         # This function is going to provide the feedback for the action server.
@@ -243,181 +322,7 @@ class ColavGatewayControllerInterface(Node):
 
         for thread in threads:
             thread.join()
-
-
-
-        # # UDP Listener started successfully
-        # self.stop_event = asyncio.Event()
-        
-        # # Ensure the event loop is running before creating tasks
-        # loop = asyncio.get_event_loop()
-
-        # # Check if the event loop is running and schedule tasks
-        # if loop.is_running():
-        #     tasks = [
-        #         asyncio.ensure_future(self.listen_for_agent_config_update(self.stop_event)),
-        #         asyncio.ensure_future(self.listen_for_obstacles_update(self.stop_event)),
-        #         asyncio.ensure_future(self.controller_feedback_listener(self.stop_event))
-        #     ]
-            
-        #     # Await the tasks concurrently
-        #     await asyncio.gather(*tasks)
-        # else:
-        #     self.get_logger().error("No running event loop found")
-
-        # feedback = MissionExecutor.Feedback()
-        # from std_msgs.msg import ByteMultiArray 
-        # protobuf_controller_msg = ByteMultiArray()
-
-        # element_1 = MultiArrayDimension()
-        # element_1.label = "1"
-        # element_1.size = 2
-        # element_1.stride = 1
-
-        # protobuf_controller_msg.layout.dim = [element_1]
-        # protobuf_controller_msg.data = [bytes(1), bytes(2)]
-
-        # feedback.serialised_protobuf_controller_feedback = protobuf_controller_msg
-
-        # goal_handle.publish_feedback(feedback)
-
-        # # # Function to periodically send feedback
-        # # def feedback_timer_callback():
-        # #     if not goal_handle.is_cancel_requested:
-        # #         goal_handle.publish_feedback(feedback)
-        # #     else:
-        # #         self.timer.cancel()  # Stop the timer when the goal is canceled
-
-        # # # Create a timer to call the feedback callback every second
-        # # self.timer = self.create_timer(1.0, feedback_timer_callback)  # 1 second interval
-
-        # while not goal_handle.is_cancel_requested:
-        #     # Here, we just wait for the goal handle to be canceled
-        #     goal_handle.publish_feedback(feedback)
-        #     time.sleep(1)
-
-        # goal_handle.succeed()
-        # else:
-        #     self.get_logger().warning(f"Hybrid Automaton failed to start with mission request")
-            # goal_handle.abort()
-
-    # Listener function example
-    # async def listen_for_agent_config_update(self, stop_event):
-    #     while not stop_event.is_set():
-    #         # Your task logic here
-    #         await asyncio.sleep(0.1)  # Simulate work
-    #     self.get_logger().info("Agent config update listener stopped")
-
-    # # Similar structure for other listener functions
-    # async def listen_for_obstacles_update(self, stop_event):
-    #     while not stop_event.is_set():
-    #         # Your task logic here
-    #         await asyncio.sleep(0.1)  # Simulate work
-    #     self.get_logger().info("Obstacles update listener stopped")
-
-    # async def controller_feedback_listener(self, stop_event):
-    #     while not stop_event.is_set():
-    #         # Your task logic here
-    #         await asyncio.sleep(0.1)  # Simulate work
-    #     self.get_logger().info("Controller feedback listener stopped")
-
-    # async def controller_feedback_listener(self):
-    #     """Listens for controller feedback via ros topic and converts it to protobuf byte message to be returned as action feedback for colav gateway,"""
-    #     pass
-
-    # async def listen_for_obstacles_update(self):
-    #     """Starts the UDP listener for obstacle updates"""
-    #     self.get_logger().info("Initiation COLAV Obstacle Update listener")
-    #     loop = asyncio.get_running_loop()
-    #     transport, protocol = await loop.create_datagram_endpoint(
-    #         lambda: self.ObstacleMetadataUDPProtocol(self, self.get_logger()),
-    #         local_addr=self._obstacle_metadata_address,
-    #     )
-    #     return transport, protocol
-
-    # async def listen_for_agent_config_update(self):
-    #     """Starts the UDP listener for agent configuration updates."""
-    #     self.get_logger().info("Initiating COLAV Agent Configuration updates.")
-    #     loop = asyncio.get_running_loop()
-    #     transport, protocol = await loop.create_datagram_endpoint(
-    #         lambda: self.AgentConfigUDPProtocol(self, self.get_logger()),
-    #         local_addr=self._agent_config_address,
-    #     )
-    #     return transport, protocol
-
-    class AgentConfigUDPProtocol(asyncio.DatagramProtocol):
-        """Handles incoming UDP agent configurations and forwards them to the COLAV system"""
-        def __init__(self, logger: RcutilsLogger):
-            self._logger = logger
-            self.agent_config_publisher = self.create_publisher(
-                ROSAgentConfigUpdateMSG,
-                '/agent_config',
-                10
-            )
-
-        def connection_made(self, transport: asyncio.DatagramTransport):
-            self.transport = transport
-        
-        def datagram_received(self, data, addr):
-            self._logger.info(f"Received data from {addr}")
-            ros_agent_config_msg = self.protobuf_agent_config_to_ros_msg(data)
-            self.publish_ros_msg(ros_agnet_config_msg=ros_agent_config_msg)
-        
-        def protobuf_agent_config_to_ros_msg(self, data):
-            agent_config_msg = ProtobufAgentCOnfigUpdate()
-            agent_config_msg.ParseFromString(data)
-            return self.convert_to_ros_msg(agent_config_msg)
-        
-        def convert_to_ros_msg(self, agent_config_msg):
-            """Convert a protobuf agent configuration message to a ROS AgentConfig message"""
-            pass
-
-        def publish_ros_msg(self, ros_agent_config_msg): 
-            """publishes the ros message"""
-            self.agent_config_publisher.publish(
-                ros_agent_config_msg
-            )
-
-        def connection_lost(self, exc):
-            self._logger.warning("UDP Connection lost for agent config listener.")
-
-    class ObstacleMetadataUDPProtocol(asyncio.DatagramProtocol):
-        """Handles incoming UDP obstacle configurations and forwards them to the COLAV system"""
-        def __init__(self, logger: RcutilsLogger):
-            self._logger = logger
-            self.agent_config_publisher = self.create_publisher(
-                ROSObstacleConfigUpdateMSG,
-                '/obstacle_config',
-                10
-            )
-
-        def connection_made(self, transport: asyncio.DatagramTransport):
-            self.transport = transport
-        
-        def datagram_received(self, data, addr):
-            self._logger.info(f"Received data from {addr}")
-            ros_obstacle_update = self.protobuf_obstacle_config_to_ros_msg(data)
-            self.publish_ros_msg(ros_agnet_config_msg=ros_obstacle_update)
-        
-        def protobuf_obstacle_config_to_ros_msg(self, data):
-            agent_config_msg = ProtobufAgentCOnfigUpdate()
-            agent_config_msg.ParseFromString(data)
-            return self.convert_to_ros_msg(agent_config_msg)
-        
-        def convert_to_ros_msg(self, agent_config_msg):
-            """Convert a protobuf agent configuration message to a ROS AgentConfig message"""
-            pass
-
-        def publish_ros_msg(self, ros_agent_config_msg): 
-            """publishes the ros message"""
-            self.agent_config_publisher.publish(
-                ros_agent_config_msg
-            )
-
-        def connection_lost(self, exc):
-            self._logger.warning("UDP Connection lost for agent config listener.")
-
-
+    
     # async def send_start_hybrid_automaton_request(self, mission_request: MissionRequest) -> Tuple[bool, str]:
     #     """Send an asynchronous service request to start the hybrid automaton"""
     #     if not self._start_hybrid_automaton_srv_client.wait_for_service(timeout_sec=3.0):
@@ -435,38 +340,6 @@ class ColavGatewayControllerInterface(Node):
     #     except Exception as e:
     #         self.get_logger().error(f"Service call failed: {str(e)}")
     #         return False, f"Error: {str(e)}"
-
-
-        # Ok Here I am going to make a service request to /state_hybrid_automaton 
-        # if the service returns true then I will start my asyncronous publishing of global updates
-        # for the hybrid automaton
-        # self.get_logger().info(f"Executing goal: {goal_handle.request.mission_tag}")
-
-        # # feedback_msg = ControllerFeedback()
-        # self.get_logger().info(f"Received Mission Request: {goal_handle.request}")
-
-    # async def upd_listener(self):
-    #     self.get_logger().info(f"Listening for UDP messages for agent config and obstacle metadata on: "
-    #                         f"\n\tAgent State Updates: ({self.agent_update_udp_host}, {self.agent_update_udp_port})"
-    #                         f"\n\tObstacle Metadata: ({self.obstacle_metadata_udp_host}, {self.obstacle_metadata_udp_port})")
-    #     self.agent_config_udp_listener()
-        
-
-    # async def agent_config_udp_listener(self):
-    #     """Listen for incoming UDP Protobuf messages to transmit to Hybrid Automaton"""
-    #     loop = asyncio.get_running_loop()
-    #     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #     sock.bind((self.agent_update_udp_host, self.agent_update_udp_port))
-    
-    # async def obstacle_metadata_udp_listener(self):
-    #     """Listen for incominb UDP Protobuf messages to transmit to Hybrid Automaton"""
-    #     loop = asyncio.get_running_loop()
-    #     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #     sock.bind((self.obstacle_metadata_udp_host, self.obstacle_metadata_udp_port))
-
-    # def feedback_callback(self, msg):
-    #     self.get_logger().info(f"Received ROS Feedback: {msg.data}")
-    #     self.feedback.controller_feedback = msg.data
 
 def main(args=None):
     rclpy.init(args=args)
