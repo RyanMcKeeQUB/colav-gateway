@@ -1,7 +1,9 @@
 from agentUpdate_pb2 import AgentUpdate as ProtobufAgentCOnfigUpdate
 import socket
+import time
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
 
 agent_config_update = ProtobufAgentCOnfigUpdate()
 # METADATA
@@ -25,4 +27,7 @@ agent_config_update.timestamp = "12/01/2025 12:02:24"
 agent_config_update.timestep = "000000001"
 
 data = agent_config_update.SerializeToString()
-sock.sendto(data, ("0.0.0.0", 7100))
+
+while True: 
+    sock.sendto(data, ("0.0.0.0", 7100))
+    time.sleep(5.0)

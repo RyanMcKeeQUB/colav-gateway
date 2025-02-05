@@ -5,10 +5,16 @@ from colav_interfaces.msg import MissionRequest, Vessel, VesselConstraints, Vess
 from colav_interfaces.msg import CmdVelYaw, ControllerFeedback, ControlMode, ControlStatus
 from geometry_msgs.msg import Point32
 from colav_interfaces.msg import AgentConfig as ROSAgentConfigUpdateMSG
+from geometry_msgs.msg import Polygon
 from colav_interfaces.msg import ObstaclesConfig as ROSObstacleConfigUpdateMSG
 
 from agentUpdate_pb2 import AgentUpdate as ProtobufAgentConfigUpdate
 from obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
+from colav_interfaces.msg import DynamicObstacleConfig
+from colav_interfaces.msg import StaticObstacleConfig
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point
+from geometry_msgs.msg import Quaternion
 
 from colav_interfaces.action import MissionExecutor
 from colav_interfaces.srv import StartHybridAutomaton
@@ -89,6 +95,7 @@ class ColavGatewayControllerInterface(Node):
         sock.close()  # Close the socket properly when stopping        self._obstacle_metadata_address = ("0.0.0.0", 7200)
 
     def cancel_callback(self, goal_handle):
+        """Action server cancel callback function"""
         self.get_logger().info('received request to cancel goal')
         return CancelResponse.ACCEPT
     
@@ -142,16 +149,13 @@ class ColavGatewayControllerInterface(Node):
         
     def listen_for_agent_config_update(self, stop_event):
         """Listen for UDP agent configuration updates."""
-
         agent_config_publisher = self.create_publisher(
             msg_type=ROSAgentConfigUpdateMSG,
             topic='/agent_config',
             qos_profile=10
         )
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(self._agent_config_address)  # Ensure this is a tuple (host, port)
-        sock.settimeout(1.0)  # Set the timeout once
+        sock = self._setup_udp_socket(self._agent_config_address, 1.0)
 
         self.get_logger().info('COLAV Gateway listening for agent configuration updates.')
 
@@ -160,152 +164,150 @@ class ColavGatewayControllerInterface(Node):
                 data, client_address = sock.recvfrom(1024)
                 self.get_logger().info(f'Agent Configuration Protobuf received from {client_address}')
                 
-                try: 
-                    agent_config_protobuf = ProtobufAgentConfigUpdate()
-                    agent_config_protobuf.ParseFromString(data)
-
-                    ros_agent_config = ROSAgentConfigUpdateMSG()
-                    ros_agent_config.agent_tag = agent_config_protobuf.agent_tag
-                    ros_agent_config.pose.position.x = agent_config_protobuf.state.pose.position.x
-                    ros_agent_config.pose.position.y = agent_config_protobuf.state.pose.position.y
-                    ros_agent_config.pose.position.z = agent_config_protobuf.state.pose.position.z
-
-                    ros_agent_config.pose.orientation.x = agent_config_protobuf.state.pose.orientation.x
-                    ros_agent_config.pose.orientation.y = agent_config_protobuf.state.pose.orientation.y
-                    ros_agent_config.pose.orientation.z = agent_config_protobuf.state.pose.orientation.z
-                    ros_agent_config.pose.orientation.w = agent_config_protobuf.state.pose.orientation.w
-
-                    # ros_agent_config.orientation = #TODO: Need to add orientation
-                    ros_agent_config.velocity = agent_config_protobuf.state.velocity
-                    ros_agent_config.yaw_rate = agent_config_protobuf.state.yaw_rate
-                    ros_agent_config.acceleration = agent_config_protobuf.state.acceleration
-
-                    ros_agent_config.timestamp = agent_config_protobuf.timestamp
-                    ros_agent_config.timestep = agent_config_protobuf.timestep
-
-                    agent_config_publisher.publish(ros_agent_config)
-                except Exception as e:
-                    self.get_logger().warning(f'Issue deserialising agent config packet received.')
-
-            except socket.timeout:  # Catch the correct exception
-                self.get_logger().warning(
-                    'Agent config update listener timeout occurred, possible packet loss'
-                )
-                continue  # Ensures the loop continues on timeout
-            except Exception as e:
-                self.get_logger().error(f"Unexpected error: {e}")
-                break  # Break on unexpected errors
+                agent_update = self._parse_agent_data(data)
+                if agent_update:
+                    agent_config_publisher.publish(agent_update)
+            except TimeoutError:
+                self.get_logger().warning('Protobuf socket timeout. Retrying...')
 
         sock.close()  # Close the socket properly when stopping
 
-    # Example function for Task 2
-    def listen_for_obstacle_config_update(self, stop_event):
+    def _parse_agent_data(self, data:bytes) -> ROSAgentConfigUpdateMSG:
+        """Parse agent configuration protobuf to ros"""
+        try:
+            protobuf_agent_update = ProtobufAgentConfigUpdate()
+            protobuf_agent_update.ParseFromString(data)
 
+            ros_agent_update = ROSAgentConfigUpdateMSG(
+                agent_tag = protobuf_agent_update.agent_tag,
+                pose=self._convert_pose(protobuf_agent_update.state.pose),
+                velocity = protobuf_agent_update.state.velocity,
+                acceleration = protobuf_agent_update.state.acceleration,
+                yaw_rate = protobuf_agent_update.state.yaw_rate,
+                timestamp = protobuf_agent_update.timestamp,
+                timestep = protobuf_agent_update.timestep
+            )
+            return ros_agent_update
+        except Exception as e:
+            self.get_logger().warning(f'Error parsing agent update: {e}')
+            return None
+
+    def listen_for_obstacle_config_update(self, stop_event):
         obstacles_config_publisher = self.create_publisher(
             msg_type=ROSObstacleConfigUpdateMSG,
             topic='/obstacles_config',
             qos_profile=10
         )
         
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind(self._obstacle_update_address)  # Ensure this is a tuple (host, port)
-        sock.settimeout(1.0)  # Set the timeout once
+        sock = self._setup_udp_socket(self._obstacle_update_address, 1.0)
+        self.get_logger().info('COLAV Gateway listening for obstacle updates.')
 
-        self.get_logger().info('COLAV Gateway listening for obstacles updates.')
-
-        while not stop_event.is_set():  # Allows clean stopping of the loop
+        while not stop_event.is_set():
             try:
                 data, client_address = sock.recvfrom(5020)
-                self.get_logger().info(f'Agent Configuration Protobuf received from {client_address}')
+                self.get_logger().info(f'Obstacle configuration received from {client_address}')
                 
-                try: 
-                    protobuf_obstacles_update = ProtobufObstaclesUpdate()
-                    protobuf_obstacles_update.ParseFromString(data)
-
-                    ros_obstacles_update = ROSObstacleConfigUpdateMSG()
-
-                    # need to iterate through protobuf obstacles adding them to ros_obstacles_update
-                    dynamic_obstacles = []
-                    from colav_interfaces.msg import DynamicObstacleConfig
-                    for dynamic_obstacle in protobuf_obstacles_update.dynamic_obstacles:
-                        ros_dynamic_obstacle = DynamicObstacleConfig()
-                        ros_dynamic_obstacle.id = dynamic_obstacle.id.tag
-                        ros_dynamic_obstacle.type = ProtobufObstaclesUpdate.ObstacleType.Name(dynamic_obstacle.id.type) 
-                        ros_dynamic_obstacle.pose.position.x = dynamic_obstacle.state.pose.position.x
-                        ros_dynamic_obstacle.pose.position.y = dynamic_obstacle.state.pose.position.y
-                        ros_dynamic_obstacle.pose.position.z = dynamic_obstacle.state.pose.position.z
-
-                        ros_dynamic_obstacle.pose.orientation.x = dynamic_obstacle.state.pose.orientation.x
-                        ros_dynamic_obstacle.pose.orientation.y = dynamic_obstacle.state.pose.orientation.y
-                        ros_dynamic_obstacle.pose.orientation.z = dynamic_obstacle.state.pose.orientation.z
-                        ros_dynamic_obstacle.pose.orientation.w = dynamic_obstacle.state.pose.orientation.w
-                        
-                        ros_dynamic_obstacle.velocity = dynamic_obstacle.state.velocity
-                        ros_dynamic_obstacle.yaw_rate = dynamic_obstacle.state.yaw_rate
-
-                        # geometry 
-                        points = []
-                        for point in dynamic_obstacle.geometry.polyshape_points:
-                            ros_point = Point32()
-                            ros_point.x = point.position.x
-                            ros_point.y = point.position.y
-                            ros_point.z = point.position.z
-                            points.append(ros_point)
-
-                        ros_dynamic_obstacle.geometry.points = points
-                        ros_dynamic_obstacle.safety_radius = dynamic_obstacle.geometry.acceptance_radius
-                        dynamic_obstacles.append(ros_dynamic_obstacle)
-                        # 
-
-                    static_obstacles = []
-                    for static_obstacle in protobuf_obstacles_update.static_obstacles:
-                        from colav_interfaces.msg import StaticObstacleConfig
-                        ros_static_obstacle = StaticObstacleConfig()    
-                        ros_static_obstacle.id = static_obstacle.id.tag
-                        ros_static_obstacle.type = ProtobufObstaclesUpdate.ObstacleType.Name(static_obstacle.id.type)
-                        ros_static_obstacle.pose.position.x = static_obstacle.pose.position.x
-                        ros_static_obstacle.pose.position.y = static_obstacle.pose.position.y
-                        ros_static_obstacle.pose.position.z = static_obstacle.pose.position.z
-
-                        ros_static_obstacle.pose.orientation.x =  static_obstacle.pose.orientation.x
-                        ros_static_obstacle.pose.orientation.y =  static_obstacle.pose.orientation.y
-                        ros_static_obstacle.pose.orientation.z =  static_obstacle.pose.orientation.z
-                        ros_static_obstacle.pose.orientation.w =  static_obstacle.pose.orientation.w
-
-                        points = []
-                        for point in static_obstacle.geometry.polyshape_points:
-                            ros_point = Point32()
-                            ros_point.x = point.position.x
-                            ros_point.y = point.position.y
-                            ros_point.z = point.position.z
-                            points.append(ros_point)
-
-                        ros_static_obstacle.geometry.points = points
-                        ros_static_obstacle.safety_radius = static_obstacle.geometry.acceptance_radius
-                        # add geometry
-
-                        static_obstacles.append(ros_static_obstacle)
-
-                    ros_obstacles_update.dynamic_obstacles = dynamic_obstacles
-                    ros_obstacles_update.static_obstacles = static_obstacles
-                    
-                    ros_obstacles_update.timestamp = protobuf_obstacles_update.timestamp
-                    ros_obstacles_update.timestep = protobuf_obstacles_update.timestep
-
+                ros_obstacles_update = self._parse_obstacle_update(data)
+                if ros_obstacles_update:
                     obstacles_config_publisher.publish(ros_obstacles_update)
-                except Exception as e: 
-                    self.get_logger().warning(f"Error parsing data received...")
-            except TimeoutError as e:
-                self.get_logger().warning(f"Agent configuration protobuf socket timeout.... Trying again.")
+            except TimeoutError:
+                self.get_logger().warning('Protobuf socket timeout. Retrying...')
+    
+    def _setup_udp_socket(self, address, timeout):
+        """Sets up a udp socket"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(address)
+        sock.settimeout(timeout)
+        return sock
 
-    def listen_for_controller_feedback(self, step_event):
-        # This function is going to provide the feedback for the action server.
-        # controller_feedback_client = self.create_client(
-        #     ControllerFeedback,
-        #     '/controller_feedback',
-        #     10
-        # )
-        pass
+    def _parse_obstacle_update(self, data):
+        """Parse Obstacle update received via protobuf and publish it to ros topic"""
+        try:
+            protobuf_obstacles_update = ProtobufObstaclesUpdate()
+            protobuf_obstacles_update.ParseFromString(data)
+
+            ros_obstacles_update = ROSObstacleConfigUpdateMSG(
+                dynamic_obstacles=self._convert_dynamic_obstacles(protobuf_obstacles_update.dynamic_obstacles),
+                static_obstacles=self._convert_static_obstacles(protobuf_obstacles_update.static_obstacles),
+                timestamp=protobuf_obstacles_update.timestamp,
+                timestep=protobuf_obstacles_update.timestep
+            )
+            return ros_obstacles_update
+        except Exception as e:
+            self.get_logger().warning(f'Error parsing obstacle update: {e}')
+            return None
+
+    def _convert_dynamic_obstacles(self, dynamic_obstacles):
+        """Convert dynamic obstacles from protobuf to ROS"""
+        converted = []
+        
+        for dynamic_obstacle in dynamic_obstacles:
+            ros_dynamic_obstacle = DynamicObstacleConfig(
+                id=dynamic_obstacle.id.tag,
+                type=ProtobufObstaclesUpdate.ObstacleType.Name(dynamic_obstacle.id.type),
+                pose=self._convert_pose(pose=dynamic_obstacle.state.pose),
+                velocity=dynamic_obstacle.state.velocity,
+                yaw_rate=dynamic_obstacle.state.yaw_rate,
+                geometry=self._convert_geometry(dynamic_obstacle.geometry),
+                safety_radius=dynamic_obstacle.geometry.acceptance_radius
+            )
+            converted.append(ros_dynamic_obstacle)
+        return converted
+    
+    def _convert_pose(self, pose) -> Pose:
+        """Converts a protobuf pose to ros msg"""
+        return Pose(
+            position=Point(
+                x = pose.position.x,
+                y = pose.position.y,
+                z = pose.position.z
+            ),
+            orientation=Quaternion(
+                x = pose.orientation.x,
+                y = pose.orientation.y,
+                z = pose.orientation.z,
+                w = pose.orientation.w
+            )
+        )
+
+    def _convert_static_obstacles(self, static_obstacles):
+        """Convert protobuf static obstacles to ROS static obstacles"""
+        converted = []
+        for static_obstacle in static_obstacles:
+            ros_static_obstacle = StaticObstacleConfig(
+                id=static_obstacle.id.tag,
+                type=ProtobufObstaclesUpdate.ObstacleType.Name(static_obstacle.id.type),
+                pose=self._convert_pose(static_obstacle.pose),
+                geometry=self._convert_geometry(static_obstacle.geometry),
+                safety_radius=static_obstacle.geometry.acceptance_radius
+            )
+            converted.append(ros_static_obstacle)
+        return converted
+
+    def _convert_geometry(self, geometry):
+        """Converts polybuf geometry to ros msg geometry"""
+        return Polygon(points = [Point32(x=point.position.x, y=point.position.y, z=point.position.z) for point in geometry.polyshape_points])
+
+    def listen_for_controller_feedback(self, stop_event):
+        # Create the subscription once outside the loop
+        self.create_subscription(
+            ControllerFeedback,
+            '/controller_feedback',
+            self.controller_feedback_callback,
+            10
+        )
+        self.get_logger().info('Listening for feedback on /controller_feedback')
+
+        # Continuously listen for feedback without reinitializing the subscription
+        while not stop_event.is_set():
+            # Just sleep, the subscription is always active
+            time.sleep(1.0)
+
+        self.get_logger().info('Stopped listening for feedback.')
+
+
+    def controller_feedback_callback(self, msg):
+        self.get_logger().info(f'msg received: {msg}')
 
     async def execute_callback(self, goal_handle):
         """Execute the controller feedback loop"""

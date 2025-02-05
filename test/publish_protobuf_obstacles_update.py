@@ -70,4 +70,8 @@ obstacles_update.timestep = "00000000000001"
 data = obstacles_update.SerializeToString()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.sendto(data, ('0.0.0.0', 7200))
+
+import time
+while True:
+    sock.sendto(data, ('0.0.0.0', 7200))
+    time.sleep(5.0)
