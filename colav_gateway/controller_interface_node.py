@@ -26,7 +26,6 @@ from std_msgs.msg import MultiArrayDimension
 import socket
 from rclpy.impl.rcutils_logger import RcutilsLogger
 import time
-import asyncio
 
 import threading
 
