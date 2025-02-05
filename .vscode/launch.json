@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Python Debugger: Current File with Config",
             "type": "debugpy",
@@ -12,7 +13,7 @@
             "env": {
                 "ROS_DISTRO": "humble",
                 "ROS_ROOT": "/opt/ros/humble/share/ros",
-                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:~/ros2_ws/src/colav_server/colav_gateway/bin"
+                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:${workspaceFolder}/../colav_protobuf/bin"
             }
         }
     ]
