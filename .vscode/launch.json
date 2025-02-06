@@ -7,14 +7,15 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["-c", "${workspaceFolder}/config/colav_gateway_config.json"],
+            "args": ["--endpoint_config", "${workspaceFolder}/config/endpoint_config.yml"],
             "console": "integratedTerminal", 
             "python": "/usr/bin/python3",
             "env": {
                 "ROS_DISTRO": "humble",
                 "ROS_ROOT": "/opt/ros/humble/share/ros",
-                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:${workspaceFolder}/../colav_protobuf/bin"
-            }
+                "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:${workspaceFolder}/../colav_protobuf/bin:${workspaceFolder}/utils"
+            },
+            "justMyCode": false
         }
     ]
 }

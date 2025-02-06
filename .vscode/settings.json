@@ -4,7 +4,8 @@
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages",
         "${workspace_folder}/colav_gateway/bin",
-        "${workspace_folder}/../colav_protobuf/bin"
+        "${workspace_folder}/../colav_protobuf/bin",
+        "${workspace_folder}/utils"
     ],
     "python.analysis.extraPaths": [
         "~/ros2_ws/install/colav_interfaces/local/lib/python3.10",
@@ -12,5 +13,6 @@
         "/opt/ros/humble/local/lib/python3.10/dist-packages",
         "${workspace_folder}/colav_gateway",
         "${workspace_folder}/../colav_protobuf/bin",
+        "${workspace_folder}/utils",
     ]
 }

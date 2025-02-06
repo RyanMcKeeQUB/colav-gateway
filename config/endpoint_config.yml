@@ -1,0 +1,15 @@
+mission_request:
+  host: "0.0.0.0"
+  port: 7000
+mission_response:
+  host: "0.0.0.0"
+  port: 7001
+agent_config:
+  host: "0.0.0.0"
+  port: 7100
+obstacles_config:
+  host: "0.0.0.0"
+  port: 7200
+controller_feedback:
+  host: "0.0.0.0"
+  port: 7300
