@@ -46,6 +46,8 @@ class ControllerInterfaceNode(Node):
     
     def __init__(
             self, 
+            agent_config_address: Tuple[str, int],
+            obstacles_config_address: Tuple[str, int], 
             node_namespace: str = "colav_gateway", 
             node_name: str = "controller_interface",
             is_thread: bool = False,
@@ -54,18 +56,8 @@ class ControllerInterfaceNode(Node):
         """init function for the ColavGatewayControllerInterface"""
         super().__init__(namespace=node_namespace, node_name=node_name)
 
-        self.declare_parameter('agent_config_host', '0.0.0.0')
-        self.declare_parameter('agent_config_port', 7100)
-
-        self.declare_parameter('obstacles_config_host', '0.0.0.0')
-        self.declare_parameter('obstacles_config_port', 7200)
-
-        self._agent_config_address = (self.get_parameter('agent_config_host').get_parameter_value().string_value,
-                                      self.get_parameter('agent_config_port').get_parameter_value().integer_value)
-        self._obstacle_update_address = (self.get_parameter('obstacles_config_host').get_parameter_value().string_value,
-                                         self.get_parameter('obstacles_config_port').get_parameter_value().integer_value)
-
-
+        self._agent_config_address = agent_config_address
+        self._obstacle_update_address = obstacles_config_address
         self._is_thread = is_thread
         if self._is_thread: 
             self._thread_events = thread_events

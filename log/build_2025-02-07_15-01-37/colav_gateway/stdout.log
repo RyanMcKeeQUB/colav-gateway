@@ -1,0 +1,72 @@
+running egg_info
+creating build/colav_gateway/colav_gateway.egg-info
+writing build/colav_gateway/colav_gateway.egg-info/PKG-INFO
+writing dependency_links to build/colav_gateway/colav_gateway.egg-info/dependency_links.txt
+writing entry points to build/colav_gateway/colav_gateway.egg-info/entry_points.txt
+writing requirements to build/colav_gateway/colav_gateway.egg-info/requires.txt
+writing top-level names to build/colav_gateway/colav_gateway.egg-info/top_level.txt
+writing manifest file 'build/colav_gateway/colav_gateway.egg-info/SOURCES.txt'
+reading manifest file 'build/colav_gateway/colav_gateway.egg-info/SOURCES.txt'
+writing manifest file 'build/colav_gateway/colav_gateway.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway
+copying colav_gateway/execute_mission_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway
+copying colav_gateway/execute_controller_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway
+copying colav_gateway/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway
+copying colav_gateway/gateway_launch.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+copying utils/msg_validation_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+copying utils/config_extractor_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+copying utils/proto_ros_converter_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+copying utils/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+copying utils/udp_socket_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts
+copying scripts/controller_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts
+copying scripts/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts
+copying scripts/mission_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts
+running install
+running install_lib
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway/execute_mission_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway/execute_controller_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/colav_gateway/gateway_launch.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils/msg_validation_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils/config_extractor_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils/proto_ros_converter_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/utils/udp_socket_utils.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts/controller_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts/__init__.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts
+copying /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/build/lib/scripts/mission_interface_node.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway/execute_mission_interface_node.py to execute_mission_interface_node.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway/execute_controller_interface_node.py to execute_controller_interface_node.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway/gateway_launch.py to gateway_launch.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils/msg_validation_utils.py to msg_validation_utils.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils/config_extractor_utils.py to config_extractor_utils.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils/proto_ros_converter_utils.py to proto_ros_converter_utils.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/utils/udp_socket_utils.py to udp_socket_utils.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts/controller_interface_node.py to controller_interface_node.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/scripts/mission_interface_node.py to mission_interface_node.cpython-310.pyc
+running install_data
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/ament_index
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/ament_index/resource_index
+creating /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/ament_index/resource_index/packages
+copying resource/colav_gateway -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/ament_index/resource_index/packages
+copying package.xml -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/colav_gateway
+copying launch/colav_gateway.launch.py -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/colav_gateway
+copying config/endpoint_config.yml -> /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/share/colav_gateway
+running install_egg_info
+Copying build/colav_gateway/colav_gateway.egg-info to /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/python3.10/site-packages/colav_gateway-0.0.1-py3.10.egg-info
+running install_scripts
+Installing controller_interface_node script to /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/colav_gateway
+Installing mission_interface_node script to /home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/install/colav_gateway/lib/colav_gateway
+writing list of installed files to '/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway/build/colav_gateway/install.log'
