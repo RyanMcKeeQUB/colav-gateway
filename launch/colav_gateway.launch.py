@@ -45,22 +45,22 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'agent_config_host',
-            default_value=agent_config_host,  # Convert tuple to string
+            default_value=str(agent_config_host),  # Convert tuple to string
             description="host of agent config updates"
         ),
         DeclareLaunchArgument(
             'agent_config_port',
-            default_value=agent_config_port,
+            default_value=str(agent_config_port),
             description="port of agent config updates"
         ),
         DeclareLaunchArgument(
             'obstacles_config_host',
-            default_value=obstacles_config_host,  # Convert tuple to string
+            default_value=str(obstacles_config_host),  # Convert tuple to string
             description="host of obstacle config updates"
         ),
         DeclareLaunchArgument(
             'obstacles_config_port',
-            default_value=obstacles_config_port,  # Convert tuple to string
+            default_value=str(obstacles_config_port),  # Convert tuple to string
             description="port of obstacle config updates"
         ),
         Node(
