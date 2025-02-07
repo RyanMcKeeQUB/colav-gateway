@@ -11,10 +11,10 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', glob.glob('launch/*.launch.[pxy][mlo]*')),  # All launch files (.launch.py, .launch.xml, .launch.yaml)
-        ('share/' + package_name + '/config', glob.glob('config/*')),  # All config files
-        ('share/' + package_name + '/scripts', glob.glob('scripts/*')),  # All script files
-        ('share/' + package_name + '/utils', glob.glob('utils/*')),  # All utility files
+        ('share/' + package_name + '/launch', glob('launch/*.launch.[pxy][mlo]*')),  # All launch files (.launch.py, .launch.xml, .launch.yaml)
+        ('share/' + package_name + '/config', glob('config/*')),  # All config files
+        ('share/' + package_name + '/scripts', glob('scripts/*')),  # All script files
+        ('share/' + package_name + '/utils', glob('utils/*')),  # All utility files
     ],
     install_requires=[
         'setuptools',
@@ -30,11 +30,12 @@ setup(
         'a planning mission and receiving/providing feedback to external applications '
         'utilizing COLAV for autonomous navigation.'
     ),
-    license='TODO: License declaration',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'colav_gateway_node = colav_gateway.colav_gateway:main'
+            'controller_interface_node = colav_gateway.execute_controller_interface_node:main',
+            'mission_interface_node = colav_gateway.execute_mission_interface_node:main'
         ],
     },
 )
