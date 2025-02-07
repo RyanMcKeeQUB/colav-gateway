@@ -1,3 +1,0 @@
-colav_gateway
-scripts
-utils

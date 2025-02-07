@@ -1,4 +1,0 @@
-[console_scripts]
-controller_interface_node = colav_gateway.execute_controller_interface_node:main
-mission_interface_node = colav_gateway.execute_mission_interface_node:main
-
