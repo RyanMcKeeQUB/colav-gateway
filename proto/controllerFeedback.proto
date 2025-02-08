@@ -1,0 +1,40 @@
+syntax = "proto2";
+
+package colav;
+
+message ControllerFeedback {
+    required string mission_tag = 1;
+    required string agent_tag = 2;
+
+    message CmdVelYaw {
+        required float velocity = 1;
+        required float yaw_rate = 2;
+    }
+
+    enum CTRLMode {
+        UNKNOWN = 0;  // Renamed from UNKOWN to UNKNOWN
+        CRUISE = 1;
+        T2LOS = 2;
+        T2Theta = 3;
+        FB = 4;
+        WAYPOINT_REACHED = 5;
+    }
+
+    enum CTRLStatusEnum {
+        UNKNOWN_STATUS = 0;  // Renamed from UNKOWN to UNKNOWN_STATUS
+        ACTIVE = 1;
+        INACTIVE = 2;
+        ERROR = 3;
+    }
+
+    message CTRLStatus {
+        required CTRLStatusEnum status = 1 [default = UNKNOWN_STATUS];
+        required string message = 2;
+    }
+
+    required CTRLMode ctrl_mode = 3 [default = UNKNOWN];
+    required CTRLStatus ctrl_status = 4;
+    required CmdVelYaw ctrl_cmd = 5;
+    required string timestamp = 6;
+    required string timestep = 7;
+}

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14missionRequest.proto\x12\x05\x63olav\"\xce\x06\n\x0eMissionRequest\x12\x0b\n\x03tag\x18\x01 \x02(\t\x12\x1f\n\x17mission_start_timestamp\x18\x02 \x02(\t\x12,\n\x06vessel\x18\x03 \x02(\x0b\x32\x1c.colav.MissionRequest.Vessel\x12:\n\x15mission_init_position\x18\x04 \x02(\x0b\x32\x1b.colav.MissionRequest.Point\x12:\n\x15mission_goal_position\x18\x05 \x02(\x0b\x32\x1b.colav.MissionRequest.Point\x1a(\n\x05Point\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\x1a\xbd\x04\n\x06Vessel\x12\x0b\n\x03tag\x18\x01 \x02(\t\x12\x42\n\x04type\x18\x02 \x02(\x0e\x32\'.colav.MissionRequest.Vessel.VesselType:\x0bUNSPECIFIED\x12J\n\x12vessel_constraints\x18\x03 \x02(\x0b\x32..colav.MissionRequest.Vessel.VesselConstraints\x12\x44\n\x0fvessel_geometry\x18\x04 \x02(\x0b\x32+.colav.MissionRequest.Vessel.VesselGeometry\x1a\xb3\x01\n\x11VesselConstraints\x12\x18\n\x10max_acceleration\x18\x03 \x02(\x02\x12\x18\n\x10max_deceleration\x18\x04 \x02(\x02\x12\x14\n\x0cmax_velocity\x18\x05 \x02(\x02\x12\x14\n\x0cmin_velocity\x18\x06 \x02(\x02\x12\x14\n\x0cmax_yaw_rate\x18\x07 \x02(\x02\x1a(\n\x05Point\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x02(\x02\x1a\x61\n\x0eVesselGeometry\x12\x18\n\x10safety_threshold\x18\x01 \x01(\x02\x12\x35\n\x10polyshape_points\x18\x02 \x03(\x0b\x32\x1b.colav.MissionRequest.Point\"7\n\nVesselType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\r\n\tHYDROFOIL\x10\x01\x12\t\n\x05OTHER\x10\x02'
+  serialized_pb=b'\n\x14missionRequest.proto\x12\x05\x63olav\"\xf6\x06\n\x0eMissionRequest\x12\x0b\n\x03tag\x18\x01 \x02(\t\x12\x1f\n\x17mission_start_timestamp\x18\x02 \x02(\t\x12,\n\x06vessel\x18\x03 \x02(\x0b\x32\x1c.colav.MissionRequest.Vessel\x12:\n\x15mission_init_position\x18\x04 \x02(\x0b\x32\x1b.colav.MissionRequest.Point\x12:\n\x15mission_goal_position\x18\x05 \x02(\x0b\x32\x1b.colav.MissionRequest.Point\x12&\n\x1emission_goal_acceptance_radius\x18\x06 \x02(\x02\x1a(\n\x05Point\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\x1a\xbd\x04\n\x06Vessel\x12\x0b\n\x03tag\x18\x01 \x02(\t\x12\x42\n\x04type\x18\x02 \x02(\x0e\x32\'.colav.MissionRequest.Vessel.VesselType:\x0bUNSPECIFIED\x12J\n\x12vessel_constraints\x18\x03 \x02(\x0b\x32..colav.MissionRequest.Vessel.VesselConstraints\x12\x44\n\x0fvessel_geometry\x18\x04 \x02(\x0b\x32+.colav.MissionRequest.Vessel.VesselGeometry\x1a\xb3\x01\n\x11VesselConstraints\x12\x18\n\x10max_acceleration\x18\x03 \x02(\x02\x12\x18\n\x10max_deceleration\x18\x04 \x02(\x02\x12\x14\n\x0cmax_velocity\x18\x05 \x02(\x02\x12\x14\n\x0cmin_velocity\x18\x06 \x02(\x02\x12\x14\n\x0cmax_yaw_rate\x18\x07 \x02(\x02\x1a(\n\x05Point\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x02(\x02\x1a\x61\n\x0eVesselGeometry\x12\x18\n\x10safety_threshold\x18\x01 \x01(\x02\x12\x35\n\x10polyshape_points\x18\x02 \x03(\x0b\x32\x1b.colav.MissionRequest.Point\"7\n\nVesselType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\r\n\tHYDROFOIL\x10\x01\x12\t\n\x05OTHER\x10\x02'
 )
 
 
@@ -49,8 +49,8 @@ _MISSIONREQUEST_VESSEL_VESSELTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=823,
-  serialized_end=878,
+  serialized_start=863,
+  serialized_end=918,
 )
 _sym_db.RegisterEnumDescriptor(_MISSIONREQUEST_VESSEL_VESSELTYPE)
 
@@ -96,8 +96,8 @@ _MISSIONREQUEST_POINT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=262,
-  serialized_end=302,
+  serialized_start=302,
+  serialized_end=342,
 )
 
 _MISSIONREQUEST_VESSEL_VESSELCONSTRAINTS_POINT = _descriptor.Descriptor(
@@ -141,8 +141,8 @@ _MISSIONREQUEST_VESSEL_VESSELCONSTRAINTS_POINT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=682,
-  serialized_end=722,
+  serialized_start=722,
+  serialized_end=762,
 )
 
 _MISSIONREQUEST_VESSEL_VESSELCONSTRAINTS = _descriptor.Descriptor(
@@ -200,8 +200,8 @@ _MISSIONREQUEST_VESSEL_VESSELCONSTRAINTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=543,
-  serialized_end=722,
+  serialized_start=583,
+  serialized_end=762,
 )
 
 _MISSIONREQUEST_VESSEL_VESSELGEOMETRY = _descriptor.Descriptor(
@@ -238,8 +238,8 @@ _MISSIONREQUEST_VESSEL_VESSELGEOMETRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=724,
-  serialized_end=821,
+  serialized_start=764,
+  serialized_end=861,
 )
 
 _MISSIONREQUEST_VESSEL = _descriptor.Descriptor(
@@ -291,8 +291,8 @@ _MISSIONREQUEST_VESSEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=305,
-  serialized_end=878,
+  serialized_start=345,
+  serialized_end=918,
 )
 
 _MISSIONREQUEST = _descriptor.Descriptor(
@@ -338,6 +338,13 @@ _MISSIONREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='mission_goal_acceptance_radius', full_name='colav.MissionRequest.mission_goal_acceptance_radius', index=5,
+      number=6, type=2, cpp_type=6, label=2,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -351,7 +358,7 @@ _MISSIONREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=32,
-  serialized_end=878,
+  serialized_end=918,
 )
 
 _MISSIONREQUEST_POINT.containing_type = _MISSIONREQUEST

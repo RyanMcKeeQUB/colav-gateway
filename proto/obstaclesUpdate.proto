@@ -1,0 +1,63 @@
+syntax = "proto2";
+
+package colav;
+
+message ObstaclesUpdate { 
+    required string mission_tag = 1;
+    enum ObstacleType {
+        UNSPECIFIED=0;
+        VESSEL=1;
+        LAND_MASS=2;
+        BUOY=3;
+    }
+
+    message ObstacleID { 
+        required string tag = 1;
+        required ObstacleType type = 2 [default = UNSPECIFIED]; 
+    }
+
+    message Pose {
+        message Position {
+            required float x = 1;
+            required float y = 2;
+            required float z = 3;
+        }
+        message Orientation {
+            required float x = 1;
+            required float y = 2;
+            required float z = 3;
+            required float w = 4;
+        }
+        required Position position = 1;
+        required Orientation orientation = 2;
+    }
+
+    message State {
+        required Pose pose = 1;
+        required float velocity = 2;
+        required float yaw_rate = 3;
+    }
+
+    message Geometry {
+        required float acceptance_radius = 1;
+        repeated Pose polyshape_points = 2; 
+    }
+
+    message DynamicObstacle {
+        required ObstacleID id = 1; 
+        required State state = 2;
+        required Geometry geometry = 3;
+    }
+
+    message StaticObstacle {
+        required ObstacleID id = 1; 
+        required Pose pose = 2;
+        required Geometry geometry = 3;
+    }
+
+    repeated DynamicObstacle dynamic_obstacles = 2;
+    repeated StaticObstacle static_obstacles = 3;
+
+    required string timestamp = 4;
+    required string timestep = 5;
+}
