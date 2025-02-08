@@ -41,9 +41,6 @@ class MissionInterfaceNode(Node):
 
     def __init__(
             self, 
-            mission_request_address: Tuple[str, int], 
-            mission_response_address: Tuple[str, int],
-            controller_feedback_address: Tuple[str, int], 
             namespace:str = "colav_gateway", 
             node_name:str = "mission_interface", 
             is_thread: bool = False,
@@ -51,10 +48,29 @@ class MissionInterfaceNode(Node):
     ):
         """Initializes the ColavGatewayNode."""
         super().__init__(namespace=namespace, node_name=node_name)
+
+        self.declare_parameter('mission_request_host', '0.0.0.0')
+        self.declare_parameter('mission_request_port', 7000)
+        self.declare_parameter('mission_response_host', '0.0.0.0')
+        self.declare_parameter('mission_response_port', 7001)
+        self.declare_parameter('controller_feedback_host', '0.0.0.0')
+        self.declare_parameter('controller_feedback_port', 7300)
         
-        self._mission_request_address = mission_request_address
-        self._mission_response_address = mission_response_address
-        self._controller_feedback_address = controller_feedback_address
+        # self._mission_request_address = mission_request_address
+        # self._mission_response_address = mission_response_address
+        self._mission_request_address = (
+            self.get_parameter('mission_request_host').get_parameter_value().string_value,
+            self.get_parameter('mission_request_port').get_parameter_value().integer_value
+        )
+        self._mission_response_address = (
+            self.get_parameter('mission_response_host').get_parameter_value().string_value,
+            self.get_parameter('mission_response_port').get_parameter_value().integer_value
+        )
+        self._controller_feedback_address = (
+            self.get_parameter('controller_feedback_host').get_parameter_value().string_value, 
+            self.get_parameter('controller_feedback_port').get_parameter_value().integer_value
+        )
+
         if is_thread:
             self._threading_events = threading_events
         self.get_logger().info(f"{namespace}/{node_name}: node initialised.")

@@ -64,7 +64,6 @@ class ControllerInterfaceNode(Node):
                                       self.get_parameter('agent_config_port').get_parameter_value().integer_value)
         self._obstacle_update_address = (self.get_parameter('obstacles_config_host').get_parameter_value().string_value,
                                          self.get_parameter('obstacles_config_port').get_parameter_value().integer_value)
-        self.get_logger().info(f'listening for agent config on address: {self._agent_config_address}')
 
         self._is_thread = is_thread
         if self._is_thread: 
