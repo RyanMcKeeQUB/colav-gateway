@@ -4,8 +4,7 @@ from rclpy.node import Node
 from colav_interfaces.msg import Mission
 import socket
 
-import missionRequest_pb2
-
+from proto_gen.missionRequest_pb2 import MissionRequest
 class TestMissionRequestTopic(Node):
     def __init__(self):
         super().__init__('test_colav_gateway_mission_request_node')
@@ -24,12 +23,12 @@ class TestMissionRequestTopic(Node):
 
 @pytest.fixture
 def protobuf_msg():
-    mock_mission_request = missionRequest_pb2.MissionRequest()
+    mock_mission_request = MissionRequest()
     mock_mission_request.tag = "MOCK_MISSION_REQUEST"
     mock_mission_request.mission_start_timestamp = "2025-01-31 15:30:45"
 
     mock_mission_request.vessel.tag = "EF-12 WORKBOAT"
-    mock_mission_request.vessel.type = missionRequest_pb2.MissionRequest.Vessel.VesselType.HYDROFOIL
+    mock_mission_request.vessel.type = MissionRequest.Vessel.VesselType.HYDROFOIL
 
     mock_mission_request.vessel.vessel_constraints.max_acceleration = 3.0 # m**2/s
     mock_mission_request.vessel.vessel_constraints.max_deceleration = 2.0 # m**2/s

@@ -1,13 +1,13 @@
-import controllerFeedback_pb2
+from proto_gen.controllerFeedback_pb2 import ControllerFeedback
 import socket
 
-control_feedback = controllerFeedback_pb2.ControllerFeedback()
+control_feedback = ControllerFeedback()
 
 control_feedback.mission_tag = "mock_mission"
 control_feedback.agent_tag = "EF12_WORKBOAT"
-control_feedback.ctrl_mode = controllerFeedback_pb2.ControllerFeedback.CTRLMode.CRUISE
+control_feedback.ctrl_mode = ControllerFeedback.CTRLMode.CRUISE
 control_feedback.ctrl_status = (
-    controllerFeedback_pb2.ControllerFeedback.CTRLStatus.ACTIVE
+    ControllerFeedback.CTRLStatus.ACTIVE
 )
 control_feedback.ctrl_cmd.velocity = float(25.0)
 control_feedback.ctrl_cmd.yaw_rate = float(0.2)

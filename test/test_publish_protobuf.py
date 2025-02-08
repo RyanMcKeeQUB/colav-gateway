@@ -1,14 +1,14 @@
-import missionRequest_pb2
+from proto_gen.missionRequest_pb2 import MissionRequest
 import socket
 
 
-mission_request = missionRequest_pb2.MissionRequest()
+mission_request = MissionRequest()
 mission_request.tag = "MISSION"
 mission_request.mission_start_timestamp = "12345"
 
 mission_request.vessel.tag = "EF12_24"
 mission_request.vessel.type = (
-    missionRequest_pb2.MissionRequest.Vessel.VesselType.HYDROFOIL
+    MissionRequest.Vessel.VesselType.HYDROFOIL
 )
 
 mission_request.vessel.vessel_constraints.max_acceleration = 2.0
@@ -39,7 +39,7 @@ mission_request.mission_goal_position.x = float(1.0)
 mission_request.mission_goal_position.z = float(1.0)
 mission_request.mission_goal_position.y = float(1.0)
 
-# mission_request.mission_goal_acceptance_radius = float(5.0)
+mission_request.mission_goal_acceptance_radius = float(5.0)
 
 serialized_msg = mission_request.SerializeToString()
 

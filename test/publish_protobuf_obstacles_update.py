@@ -1,4 +1,4 @@
-from obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
+from proto_gen.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
 import socket
 
 obstacles_update = ProtobufObstaclesUpdate()

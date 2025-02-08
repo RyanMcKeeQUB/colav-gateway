@@ -10,7 +10,7 @@ from enum import Enum
 import sys
 
 # Protobuf imports
-from missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
+from proto_gen.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
 
 # ROS interface imports
 # Mission Request

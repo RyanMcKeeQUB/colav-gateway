@@ -1,4 +1,4 @@
-from agentUpdate_pb2 import AgentUpdate as ProtobufAgentCOnfigUpdate
+from proto_gen.agentUpdate_pb2 import AgentUpdate as ProtobufAgentCOnfigUpdate
 import socket
 import time
 
