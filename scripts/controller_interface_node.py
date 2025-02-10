@@ -101,11 +101,6 @@ class ControllerInterfaceNode(Node):
         # Need to create a publisher in here
         self.get_logger().info(f'Received feedback: {msg}')
         self._controller_feedback = ROSTOProtoUtils.parse_controller_feedback(msg = msg)
-        # # You can process the ControllerFeedback message here
-        # # For example, log the cmd_vel_yaw:
-        # self.get_logger().info(f'Command Velocity: {msg.cmd_vel_yaw.velocity}, Yaw Rate: {msg.cmd_vel_yaw.yaw_rate}')
-        # self.get_logger().info(f'Control Mode: {msg.ctrl_mode.control_mode}')
-        # self.get_logger().info(f'Control Status: {msg.ctrl_status.status}, Message: {msg.ctrl_status.message}')
 
     def start_mission_action_server(self, server_name:str = "execute_mission"):
         """Starts the action server for the controller interface node."""
@@ -220,7 +215,8 @@ class ControllerInterfaceNode(Node):
         # Publish feedback periodically
         while not stop_event.is_set():
             protobuf_ctrl_feedback = ByteMultiArray()
-            protobuf_ctrl_feedback.data = bytearray([65, 66, 67, 68])
+            if self._controller_feedback is not None:
+                protobuf_ctrl_feedback.data = bytes(self._controller_feedback.SerializeToString())
             feedback_msg._serialised_protobuf_controller_feedback = protobuf_ctrl_feedback 
             goal_handle.publish_feedback(feedback_msg)  # Publish feedback
             await asyncio.sleep(1)  # Sleep for periodic updates
