@@ -113,12 +113,13 @@ class MissionInterfaceNode(Node):
         req.mission_request = mission_request
         send_goal_future = execute_mission_cli.send_goal_async(
             goal=req,
-            feedback_callback=lambda: self.ctrl_feedback_callback()
+            feedback_callback=self.ctrl_feedback_callback
         )
         send_goal_future.add_done_callback(self._ctrl_goal_response_callback)
 
-    def ctrl_feedback_callback(self, timeout:float = 5.0):
-        self.get_logger().info('Feedback received!')
+    def ctrl_feedback_callback(self, feedback, timeout:float = 5.0):
+        self.get_logger().info(f'Feedback received: {feedback}')
+        # Receiving feedback in byte format in feedback.serialized msg now need to send this to controller feedback socket until mission is completed status is returned!!!
 
     def _ctrl_goal_response_callback(self, future):
 
