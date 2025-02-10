@@ -32,7 +32,7 @@ sys.path.append(os.path.abspath('/home/3507145@eeecs.qub.ac.uk/Documents/ColavPr
 from utils.udp_socket_utils import setup_udp_socket
 from utils.proto_ros_converter_utils import ProtoToROSUtils
 from utils.msg_validation_utils import validate_mission_request
-
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy
 import threading
 
 logger = rclpy.logging.get_logger("colav_gateway_logger")
@@ -69,8 +69,42 @@ class ControllerInterfaceNode(Node):
         if self._is_thread: 
             self._thread_events = thread_events
 
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT
+        )
+
+        self.agent_config_publisher = self.create_publisher(
+            msg_type=ROSAgentConfigUpdateMSG,
+            topic='/agent_config',
+            qos_profile=10
+        )
+
+        self.obstacles_config_publisher = self.create_publisher(
+            msg_type=ROSObstacleConfigUpdateMSG,
+            topic='/obstacles_config',
+            qos_profile=10
+        )
+        # # Subscriber to the '/controller_feedback' topic
+        self.subscription = self.create_subscription(
+            ControllerFeedback,
+            '/controller_feedback',
+            self.feedback_callback,
+            qos_profile
+        )
+        self.subscription  # Prevent unused variable warning
         self.start_mission_action_server()
-        self.get_logger().info("Node initialised...")
+
+    def feedback_callback(self, msg):
+        # Need to create a publisher in here
+        pass
+        # self.get_logger().info(f'Received feedback: {msg}')
+        # # You can process the ControllerFeedback message here
+        # # For example, log the cmd_vel_yaw:
+        # self.get_logger().info(f'Command Velocity: {msg.cmd_vel_yaw.velocity}, Yaw Rate: {msg.cmd_vel_yaw.yaw_rate}')
+        # self.get_logger().info(f'Control Mode: {msg.ctrl_mode.control_mode}')
+        # self.get_logger().info(f'Control Status: {msg.ctrl_status.status}, Message: {msg.ctrl_status.message}')
 
     def start_mission_action_server(self, server_name:str = "execute_mission"):
         """Starts the action server for the controller interface node."""
@@ -130,17 +164,12 @@ class ControllerInterfaceNode(Node):
         
         return GoalResponse.REJECT
 
-    def _listen_for_agent_config_update(self, stop_event):
+    def _listen_for_agent_config_update(self, stop_event, timeout:float = 10.0):
         """Listen for UDP agent configuration updates."""
-        agent_config_publisher = self.create_publisher(
-            msg_type=ROSAgentConfigUpdateMSG,
-            topic='/agent_config',
-            qos_profile=10
-        )
+        self.get_logger().info('Listening for agent config updates on /agent_config topics...')
 
-        sock = setup_udp_socket(self._agent_config_address, 1.0)
 
-        self.get_logger().info('COLAV Gateway listening for agent configuration updates.')
+        sock = setup_udp_socket(self._agent_config_address, timeout)
 
         while not stop_event.is_set():  # Allows clean stopping of the loop
             try:
@@ -149,24 +178,18 @@ class ControllerInterfaceNode(Node):
                 
                 agent_update = ProtoToROSUtils.parse_agent_proto(data)
                 if agent_update:
-                    agent_config_publisher.publish(agent_update)
+                    self.agent_config_publisher.publish(agent_update)
             except TimeoutError:
-                self.get_logger().warning('agent update socket timeout. Retrying...')
+                self.get_logger().warning('/agent_config listener socket timeout, Trying again...')
             except Exception as e:
                 self.get_logger().warning(e)
 
         sock.close()  # Close the socket properly when stopping
 
-    def _listen_for_obstacle_config_update(self, stop_event):
+    def _listen_for_obstacle_config_update(self, stop_event, timeout:float = 10.0):
         """Listen for obstacle updates"""
-        obstacles_config_publisher = self.create_publisher(
-            msg_type=ROSObstacleConfigUpdateMSG,
-            topic='/obstacles_config',
-            qos_profile=10
-        )
-        
-        sock = setup_udp_socket(self._obstacle_update_address, 1.0)
-        self.get_logger().info('COLAV Gateway listening for obstacle updates.')
+        self.get_logger().info('Listening for obstacles config updates on /obstacles_config topic...')
+        sock = setup_udp_socket(self._obstacle_update_address, timeout)
 
         while not stop_event.is_set():
             try:
@@ -175,42 +198,37 @@ class ControllerInterfaceNode(Node):
                 
                 ros_obstacles_update = ProtoToROSUtils.parse_obstacles_proto(data)
                 if ros_obstacles_update:
-                    obstacles_config_publisher.publish(ros_obstacles_update)
+                    self.obstacles_config_publisher.publish(ros_obstacles_update)
             except TimeoutError:
-                self.get_logger().warning('obstacle config socket timeout. Retrying...')
-
-    def _controller_feedback_callback(self, msg):
-        self.get_logger().info(f'msg received: {msg}')
-
-    def _listen_for_controller_feedback(self, stop_event):
-        """Listen for controller updates"""
-        self.create_subscription(
-            ControllerFeedback,
-            '/controller_feedback',
-            self._controller_feedback_callback,
-            10
-        )
-        self.get_logger().info('Listening for feedback on /controller_feedback')
-
-        # Continuously listen for feedback without reinitializing the subscription
-        while not stop_event.is_set():
-            # Just sleep, the subscription is always active
-            time.sleep(1.0)
-
-        self.get_logger().info('Stopped listening for feedback.')
+                self.get_logger().warning('/obstacles_config listener socket timeout. Trying again...')
 
     async def execute_callback(self, goal_handle):
         """Execute the controller feedback loop"""
         self.get_logger().info("Hybrid Automaton successfully started")
+        feedback_msg = MissionExecutor.Feedback()
+
         stop_event = threading.Event()
         threads = [
             threading.Thread(target=self._listen_for_agent_config_update, args=(stop_event,)),
             threading.Thread(target=self._listen_for_obstacle_config_update, args=(stop_event,)),
-            threading.Thread(target=self._listen_for_controller_feedback, args=(stop_event,))  # Possible copy-paste mistake?
         ]
 
         for thread in threads:
             thread.start()
+        from std_msgs.msg import ByteMultiArray
+        # Publish feedback periodically
+        while not stop_event.is_set():
+            protobuf_ctrl_feedback = ByteMultiArray()
+            protobuf_ctrl_feedback.data = bytearray([65, 66, 67, 68])
+            feedback_msg._serialised_protobuf_controller_feedback = protobuf_ctrl_feedback 
+            goal_handle.publish_feedback(feedback_msg)  # Publish feedback
+            await asyncio.sleep(1)  # Sleep for periodic updates
 
         for thread in threads:
             thread.join()
+
+        goal_handle.succeed()  # Mark the action as successfully completed
+
+        result = MissionExecutor.Result()
+        result.success = True  # Populate result
+        return result

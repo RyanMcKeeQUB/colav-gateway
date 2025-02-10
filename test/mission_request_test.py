@@ -1,16 +1,17 @@
 import pytest
 import rclpy
 from rclpy.node import Node
-from colav_interfaces.msg import Mission
+from colav_interfaces.msg import MissionRequest
 import socket
 
 from proto_gen.missionRequest_pb2 import MissionRequest
+
 class TestMissionRequestTopic(Node):
     def __init__(self):
         super().__init__('test_colav_gateway_mission_request_node')
         mission_request_topic = "colav/mission_request"
         self.mission_request_topic = self.create_subscription(
-            Mission,
+            MissionRequest,
             mission_request_topic,
             self.listener_callback,  # Fix callback name
             10
