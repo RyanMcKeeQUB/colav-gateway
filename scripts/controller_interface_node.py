@@ -70,11 +70,11 @@ class ControllerInterfaceNode(Node):
         if self._is_thread: 
             self._thread_events = thread_events
 
-        # qos_profile = QoSProfile(
-        #     history=QoSHistoryPolicy.KEEP_LAST,
-        #     depth=10,
-        #     reliability=QoSReliabilityPolicy.BEST_EFFORT
-        # )
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT
+        )
 
         self.agent_config_publisher = self.create_publisher(
             msg_type=ROSAgentConfigUpdateMSG,
@@ -88,14 +88,14 @@ class ControllerInterfaceNode(Node):
             qos_profile=10
         )
         # # Subscriber to the '/controller_feedback' topic
-        # self.subscription = self.create_subscription(
-        #     ControllerFeedback,
-        #     '/controller_feedback',
-        #     self.feedback_callback,
-        #     qos_profile
-        # )
+        self.subscription = self.create_subscription(
+            ControllerFeedback,
+            '/controller_feedback',
+            self.feedback_callback,
+            qos_profile
+        )
         self._controller_feedback = None
-        self.subscription  # Prevent unused variable warning
+        # self.subscription  # Prevent unused variable warning
         self.start_mission_action_server()
 
     def feedback_callback(self, msg):
@@ -201,16 +201,6 @@ class ControllerInterfaceNode(Node):
 
     def _receive_controller_feedback(self, goal_handle, stop_event):
         self.get_logger().info('Listening for controller feedback on /controller_feedback topic...')
-        self.subscription = self.create_subscription(
-            ControllerFeedback,
-            '/controller_feedback',
-            self.feedback_callback,
-                QoSProfile(
-                history=QoSHistoryPolicy.KEEP_LAST,
-                depth=10,
-                reliability=QoSReliabilityPolicy.BEST_EFFORT
-            )
-        )
 
         while not stop_event.is_set():
             try: 
@@ -221,7 +211,10 @@ class ControllerInterfaceNode(Node):
                     protobuf_ctrl_feedback.data = [bytes([byte]) for byte in serialised_msg]
                 feedback_msg._serialised_protobuf_controller_feedback = protobuf_ctrl_feedback 
                 goal_handle.publish_feedback(feedback_msg)  # Publish feedback
-                rclpy.spin_once(timeout_sec=1)  # Sleep for periodic updates
+                rclpy.spin_once(self, timeout_sec=1)  # Sleep for periodic updates
+            except Exception as e:
+                self.get_logger().warning(f'{e}')
+                stop_event.set()
 
     def execute_callback(self, goal_handle):
         """Execute the controller feedback loop"""
