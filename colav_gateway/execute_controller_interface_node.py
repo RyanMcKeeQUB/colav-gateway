@@ -19,7 +19,7 @@ def main(args=None):
 
         executor = MultiThreadedExecutor()
         executor.add_node(node = controller_interface_node) 
-        executor_thread = threading.Thread(target=executor.spin, daemon=True)
+        executor_thread = threading.Thread(target=executor.spin, daemon=True) # set daemon to true in future to make background worker
         executor_thread.start()
 
         executor_thread.join()

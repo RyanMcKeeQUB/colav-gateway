@@ -5,22 +5,19 @@ import launch
 import launch_testing
 import launch_ros.actions
 from rclpy.node import Node
+from scripts.controller_interface_node import ControllerInterfaceNode
+import pytest
+import subprocess
+
 
 class TestIntegrationColavGateway(unittest.TestCase):
     
-    @classmethod
-    def setUpClass(cls):
-        """Start the node before running tests."""
-        cls.launch_service = launch.LaunchService()
-        cls.process = launch_ros.actions.Node(
-            package="my_package",
-            executable="my_node",
-            name="my_test_node"
-        )
-        cls.launch_service.include_launch_description(
-            launch.LaunchDescription([cls.process])
-        )
-        cls.launch_service.run()
+    @pytest.fixture(autouse=True)
+    def setup_and_teardown(self):
+            """Fixture to initialize and shutdown ROS 2 nodes."""
+            self.controller_interface_node_process = subprocess.Popen(
+                 ['ros2', 'run', 'colav_gateway', 'colav_gateway', 'controller_interface_node']
+            )
 
     @classmethod
     def tearDownClass(cls):
