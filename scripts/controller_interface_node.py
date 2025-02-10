@@ -34,7 +34,7 @@ from utils.proto_ros_converter_utils import ProtoToROSUtils
 from utils.msg_validation_utils import validate_mission_request
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy
 import threading
-
+from utils.ros_proto_converter_utils import ROSTOProtoUtils
 logger = rclpy.logging.get_logger("colav_gateway_logger")
 workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -93,13 +93,14 @@ class ControllerInterfaceNode(Node):
             self.feedback_callback,
             qos_profile
         )
+        self._controller_feedback = None
         self.subscription  # Prevent unused variable warning
         self.start_mission_action_server()
 
     def feedback_callback(self, msg):
         # Need to create a publisher in here
-        pass
-        # self.get_logger().info(f'Received feedback: {msg}')
+        self.get_logger().info(f'Received feedback: {msg}')
+        self._controller_feedback = ROSTOProtoUtils.parse_controller_feedback(msg = msg)
         # # You can process the ControllerFeedback message here
         # # For example, log the cmd_vel_yaw:
         # self.get_logger().info(f'Command Velocity: {msg.cmd_vel_yaw.velocity}, Yaw Rate: {msg.cmd_vel_yaw.yaw_rate}')

@@ -3,48 +3,53 @@ from scripts.mission_interface_node import MissionInterfaceNode
 import sys
 from rclpy.logging import get_logger
 import threading
+from rclpy.executors import MultiThreadedExecutor
 
 logger = get_logger("execute_mission_interface_node")
 
-def start_udp_listener(node, error_event):
+def executor_thread_fn(executor):
+    """ Runs the executor in a separate thread. """
     try:
-        node.listen_for_mission_request()
+        executor.spin()
     except Exception as e:
-        # Set the error event and store the exception to raise it in the main thread.
-        error_event.set()
-        error_event.exception = e
-        # Shutdown rclpy so that rclpy.spin() exits in the main thread, if not already shut down.
-        if rclpy.ok():
-            rclpy.shutdown()
+        logger.error(f"Executor thread exception: {e}")
+    finally:
+        logger.info("Shutting down executor...")
+        rclpy.shutdown()
 
 def main(args=None):
-    node = None  # Initialize node to None to avoid UnboundLocalError
-    error_event = threading.Event()  # Event to signal an error
+    rclpy.init(args=args)
+    mission_interface_node = None
+    executor = None
+    executor_thread = None
+
     try:
-        rclpy.init(args=args)
-        node = MissionInterfaceNode()
+        mission_interface_node = MissionInterfaceNode()
+        executor = MultiThreadedExecutor()
+        executor.add_node(mission_interface_node)
 
-        listener_thread = threading.Thread(target=start_udp_listener, args=(node, error_event))
-        listener_thread.start()
+        executor_thread = threading.Thread(target=executor_thread_fn, args=(executor,), daemon=True)
+        executor_thread.start()
 
-        # rclpy.spin() will block until rclpy.shutdown() is called.
-        rclpy.spin(node=node)
-        listener_thread.join()
+        while rclpy.ok():
+            # This keeps the main thread alive while monitoring for exceptions
+            executor_thread.join(timeout=1.0)
+            if not executor_thread.is_alive():
+                logger.error("Executor thread unexpectedly stopped!")
+                break
 
-        # Check if there was an error in the thread after spin returns.
-        if error_event.is_set():
-            raise error_event.exception  # Reraise the exception that occurred in the thread.
     except KeyboardInterrupt:
-        logger.info("Keyboard interrupt occurred, closing controller_interface_node")
+        logger.info("Keyboard interrupt received. Shutting down...")
     except Exception as e:
-        logger.error(f"Error: {e}")
+        logger.error(f"Main thread exception: {e}")
     finally:
-        if node:  # Ensure the node is destroyed only if it was successfully created.
-            node.destroy_node()
-        # Only call shutdown if the ROS context is still active.
-        if rclpy.ok():
-            rclpy.shutdown()
-        sys.exit(1)
+        if mission_interface_node:
+            mission_interface_node.destroy_node()
+            logger.info("Node destroyed.")
+        if executor:
+            executor.shutdown()  # Ensure executor stops
+        rclpy.shutdown()  # Properly shut down ROS
+        logger.info("ROS shutdown complete.")
 
 if __name__ == "__main__":
     main()
