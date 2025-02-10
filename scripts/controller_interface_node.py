@@ -15,6 +15,7 @@ from colav_interfaces.msg import StaticObstacleConfig
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
+from std_msgs.msg import ByteMultiArray
 
 from colav_interfaces.action import MissionExecutor
 from colav_interfaces.srv import StartHybridAutomaton
@@ -69,11 +70,11 @@ class ControllerInterfaceNode(Node):
         if self._is_thread: 
             self._thread_events = thread_events
 
-        qos_profile = QoSProfile(
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT
-        )
+        # qos_profile = QoSProfile(
+        #     history=QoSHistoryPolicy.KEEP_LAST,
+        #     depth=10,
+        #     reliability=QoSReliabilityPolicy.BEST_EFFORT
+        # )
 
         self.agent_config_publisher = self.create_publisher(
             msg_type=ROSAgentConfigUpdateMSG,
@@ -87,12 +88,12 @@ class ControllerInterfaceNode(Node):
             qos_profile=10
         )
         # # Subscriber to the '/controller_feedback' topic
-        self.subscription = self.create_subscription(
-            ControllerFeedback,
-            '/controller_feedback',
-            self.feedback_callback,
-            qos_profile
-        )
+        # self.subscription = self.create_subscription(
+        #     ControllerFeedback,
+        #     '/controller_feedback',
+        #     self.feedback_callback,
+        #     qos_profile
+        # )
         self._controller_feedback = None
         self.subscription  # Prevent unused variable warning
         self.start_mission_action_server()
@@ -198,28 +199,44 @@ class ControllerInterfaceNode(Node):
             except TimeoutError:
                 self.get_logger().warning('/obstacles_config listener socket timeout. Trying again...')
 
-    async def execute_callback(self, goal_handle):
+    def _receive_controller_feedback(self, goal_handle, stop_event):
+        self.get_logger().info('Listening for controller feedback on /controller_feedback topic...')
+        self.subscription = self.create_subscription(
+            ControllerFeedback,
+            '/controller_feedback',
+            self.feedback_callback,
+                QoSProfile(
+                history=QoSHistoryPolicy.KEEP_LAST,
+                depth=10,
+                reliability=QoSReliabilityPolicy.BEST_EFFORT
+            )
+        )
+
+        while not stop_event.is_set():
+            try: 
+                feedback_msg = MissionExecutor.Feedback()
+                protobuf_ctrl_feedback = ByteMultiArray()
+                if self._controller_feedback is not None:
+                    serialised_msg = self._controller_feedback.SerializeToString()
+                    protobuf_ctrl_feedback.data = [bytes([byte]) for byte in serialised_msg]
+                feedback_msg._serialised_protobuf_controller_feedback = protobuf_ctrl_feedback 
+                goal_handle.publish_feedback(feedback_msg)  # Publish feedback
+                rclpy.spin_once(timeout_sec=1)  # Sleep for periodic updates
+
+    def execute_callback(self, goal_handle):
         """Execute the controller feedback loop"""
         self.get_logger().info("Hybrid Automaton successfully started")
-        feedback_msg = MissionExecutor.Feedback()
+
 
         stop_event = threading.Event()
         threads = [
             threading.Thread(target=self._listen_for_agent_config_update, args=(stop_event,)),
             threading.Thread(target=self._listen_for_obstacle_config_update, args=(stop_event,)),
+            threading.Thread(target=self._receive_controller_feedback, args=(goal_handle, stop_event, ))
         ]
 
         for thread in threads:
             thread.start()
-        from std_msgs.msg import ByteMultiArray
-        # Publish feedback periodically
-        while not stop_event.is_set():
-            protobuf_ctrl_feedback = ByteMultiArray()
-            if self._controller_feedback is not None:
-                protobuf_ctrl_feedback.data = bytes(self._controller_feedback.SerializeToString())
-            feedback_msg._serialised_protobuf_controller_feedback = protobuf_ctrl_feedback 
-            goal_handle.publish_feedback(feedback_msg)  # Publish feedback
-            await asyncio.sleep(1)  # Sleep for periodic updates
 
         for thread in threads:
             thread.join()
@@ -229,3 +246,34 @@ class ControllerInterfaceNode(Node):
         result = MissionExecutor.Result()
         result.success = True  # Populate result
         return result
+    
+# test start
+from rclpy.logging import get_logger
+from rclpy.executors import MultiThreadedExecutor
+
+logger = get_logger("controller_interface_node")
+
+
+def main(args=None):
+
+    try:
+        rclpy.init(args=args)
+        controller_interface_node = ControllerInterfaceNode()
+
+        executor = MultiThreadedExecutor()
+        executor.add_node(node = controller_interface_node) 
+        executor_thread = threading.Thread(target=executor.spin, daemon=False) # set daemon to true in future to make background worker
+        executor_thread.start()
+
+        executor_thread.join()
+
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        logger.error(f"Error: {e}")
+
+    controller_interface_node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()
