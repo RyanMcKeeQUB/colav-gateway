@@ -6,12 +6,11 @@ import yaml
 import threading
 from rclpy.node import Node
 from rclpy.logging import get_logger
-sys.path.append(os.path.abspath('/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway'))
 from utils.config_extractor_utils import extract_endpoint, EndpointEnum
 
 # Add custom package path
-from scripts.mission_interface_node import MissionInterfaceNode
-from scripts.controller_interface_node import ControllerInterfaceNode
+from colav_gateway.scripts.mission_interface_node import MissionInterfaceNode
+from colav_gateway.scripts.controller_interface_node import ControllerInterfaceNode
 
 logger = get_logger("gateway_launch")
 
