@@ -16,6 +16,7 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 from std_msgs.msg import ByteMultiArray
+from std_msgs.msg import Header
 
 from colav_interfaces.action import MissionExecutor
 from colav_interfaces.srv import StartHybridAutomaton
@@ -48,7 +49,7 @@ class ControllerInterfaceNode(Node):
     def __init__(
             self, 
             node_namespace: str = "colav_gateway", 
-            node_name: str = "controller_interface",
+            node_name: str = "controller_interface_node",
             is_thread: bool = False,
             thread_events: dict = None
     ):
@@ -173,7 +174,7 @@ class ControllerInterfaceNode(Node):
                 data, client_address = sock.recvfrom(1024)
                 self.get_logger().info(f'Agent Configuration Protobuf received from {client_address}')
                 
-                agent_update = ProtoToROSUtils.parse_agent_proto(data)
+                agent_update = ProtoToROSUtils.parse_agent_proto(node=self, msg=data)
                 if agent_update:
                     self.agent_config_publisher.publish(agent_update)
             except TimeoutError:
@@ -193,7 +194,7 @@ class ControllerInterfaceNode(Node):
                 data, client_address = sock.recvfrom(5020)
                 self.get_logger().info(f'Obstacle configuration received from {client_address}')
                 
-                ros_obstacles_update = ProtoToROSUtils.parse_obstacles_proto(data)
+                ros_obstacles_update = ProtoToROSUtils.parse_obstacles_proto(node=self, msg=data)
                 if ros_obstacles_update:
                     self.obstacles_config_publisher.publish(ros_obstacles_update)
             except TimeoutError:

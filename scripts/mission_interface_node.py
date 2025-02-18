@@ -43,7 +43,7 @@ class MissionInterfaceNode(Node):
     def __init__(
             self, 
             namespace:str = "colav_gateway", 
-            node_name:str = "mission_interface", 
+            node_name:str = "mission_interface_node", 
             is_thread: bool = False,
             threading_events: dict = None
     ):
