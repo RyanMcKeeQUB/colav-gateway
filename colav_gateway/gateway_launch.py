@@ -6,11 +6,23 @@ import yaml
 import threading
 from rclpy.node import Node
 from rclpy.logging import get_logger
+
+from ament_index_python.packages import get_package_prefix
+import os
+
+package_name = 'colav_gateway'
+install_path = get_package_prefix(package_name=package_name)
+site_packages_path = os.path.join(install_path, "lib", "python3.10", "site-packages")
+
+if site_packages_path in sys.path:
+    sys.path.remove(site_packages_path)  # Remove if it already exists
+sys.path.insert(0, site_packages_path)  # Insert at the highest priority
+
 from utils.config_extractor_utils import extract_endpoint, EndpointEnum
 
 # Add custom package path
-from colav_gateway.scripts.mission_interface_node import MissionInterfaceNode
-from colav_gateway.scripts.controller_interface_node import ControllerInterfaceNode
+from scripts.mission_interface_node import MissionInterfaceNode
+from scripts.controller_interface_node import ControllerInterfaceNode
 
 logger = get_logger("gateway_launch")
 
