@@ -31,12 +31,12 @@ import time
 import sys
 import asyncio
 sys.path.append(os.path.abspath('/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway'))
-from utils.udp_socket_utils import setup_udp_socket
-from utils.proto_ros_converter_utils import ProtoToROSUtils
-from utils.msg_validation_utils import validate_mission_request
+from colav_gateway.utils.udp_socket_utils import setup_udp_socket
+from colav_gateway.utils.proto_ros_converter_utils import ProtoToROSUtils
+from colav_gateway.utils.msg_validation_utils import validate_mission_request
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy
 import threading
-from utils.ros_proto_converter_utils import ROSTOProtoUtils
+from colav_gateway.utils.ros_proto_converter_utils import ROSTOProtoUtils
 logger = rclpy.logging.get_logger("colav_gateway_logger")
 workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 

@@ -8,11 +8,11 @@ from rclpy.executors import MultiThreadedExecutor
 from ament_index_python.packages import get_package_prefix
 import os
 
-package_name = 'colav_gateway'
-install_path = get_package_prefix(package_name=package_name)
-site_packages_path = os.path.join(install_path, "lib", "python3.10", "site-packages")
+# package_name = 'colav_gateway'
+# install_path = get_package_prefix(package_name=package_name)
+# site_packages_path = os.path.join(install_path, "lib", "python3.10", "site-packages")
 
-from scripts.mission_interface_node import MissionInterfaceNode
+from colav_gateway.scripts.mission_interface_node import MissionInterfaceNode
 
 logger = get_logger("execute_mission_interface_node")
 

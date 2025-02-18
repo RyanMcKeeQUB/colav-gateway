@@ -25,9 +25,9 @@ from rclpy.action import ActionClient
 from rclpy.impl.rcutils_logger import RcutilsLogger
 sys.path.append(os.path.abspath('/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway'))
 from typing import Any, Tuple
-from utils.udp_socket_utils import setup_udp_socket
+from colav_gateway.utils.udp_socket_utils import setup_udp_socket
 
-from utils.proto_ros_converter_utils import ProtoToROSUtils
+from colav_gateway.utils.proto_ros_converter_utils import ProtoToROSUtils
 
 ROS_NAMESPACE = "colav_gateway"
 NODE_NAME = "mission_request_listener"
