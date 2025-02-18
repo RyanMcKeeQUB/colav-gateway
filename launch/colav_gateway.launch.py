@@ -4,7 +4,7 @@ from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from rclpy.logging import get_logger
-from utils.config_extractor_utils import extract_endpoint, EndpointEnum
+from colav_gateway.utils.config_extractor_utils import extract_endpoint, EndpointEnum
 import yaml
 import os
 

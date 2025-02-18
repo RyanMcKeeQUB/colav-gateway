@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.logging import get_logger
-from utils.config_extractor_utils import extract_endpoint, EndpointEnum
+from colav_gateway.utils.config_extractor_utils import extract_endpoint, EndpointEnum
 import threading
 import sys
 from rclpy.executors import MultiThreadedExecutor
