@@ -15,6 +15,8 @@ from colav_interfaces.msg import VesselConstraints
 from colav_interfaces.msg import VesselGeometry
 
 from geometry_msgs.msg import Pose, Point, Quaternion, Polygon, Point32
+from std_msgs.msg import Header
+from rclpy.node import Node
 
 class ProtoToROSUtils: 
     @staticmethod
@@ -67,13 +69,17 @@ class ProtoToROSUtils:
             )
         )
     @staticmethod
-    def parse_agent_proto(msg: bytes) -> ROSAgentUpdate:
+    def parse_agent_proto(node: Node, msg: bytes) -> ROSAgentUpdate:
         """Parse agent configuration protobuf to ros"""
         try:
             protobuf_agent_update = ProtoAgentUpdate()
             protobuf_agent_update.ParseFromString(msg)
 
             return ROSAgentUpdate(
+                header = Header(
+                    stamp = node.get_clock().now().to_msg(),
+                    frame_id = "map"
+                ),
                 agent_tag=protobuf_agent_update.agent_tag,
                 pose=ProtoToROSUtils._parse_pose(protobuf_agent_update.state.pose),
                 velocity=protobuf_agent_update.state.velocity,
@@ -86,13 +92,17 @@ class ProtoToROSUtils:
             raise ValueError(f"Error parsing agent protobuf: {e}") from e
 
     @staticmethod
-    def parse_obstacles_proto(msg: bytes) -> ROSObstaclesUpdate:
+    def parse_obstacles_proto(node:Node, msg: bytes) -> ROSObstaclesUpdate:
         """Parse Obstacle update received via protobuf and publish it to ros topic"""
         try:
             protobuf_obstacles_update = ProtoObstaclesUpdate()
             protobuf_obstacles_update.ParseFromString(msg)
 
             return ROSObstaclesUpdate(
+                header=Header(
+                    stamp = node.get_clock().now().to_msg(),
+                    frame_id = "map"
+                ),
                 dynamic_obstacles=ProtoToROSUtils._parse_dynamic_obstacles(protobuf_obstacles_update.dynamic_obstacles),
                 static_obstacles=ProtoToROSUtils._parse_static_obstacles(protobuf_obstacles_update.static_obstacles),
                 timestamp=protobuf_obstacles_update.timestamp,

@@ -36,7 +36,6 @@ for x in range(0,4):
     obstacles_update.dynamic_obstacles[x].state.yaw_rate = float(0.2)
 
 # add static obstacles
-
 for x in range(0,5): 
     obstacles_update.static_obstacles.add()
     obstacles_update.static_obstacles[x].id.tag = f"static_obstacle_{x}"
