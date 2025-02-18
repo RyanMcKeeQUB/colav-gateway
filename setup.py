@@ -14,8 +14,8 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
         ('share/' + package_name + '/config', glob('config/*.yml')),
-        ('lib/python3.10/site-packages/colav_gateway/scripts', glob('scripts/*.py')), # adding scripts manually so theres an explicity namespace
-        ('lib/python3.10/site-packages/colav_gateway/utils', glob('utils/*.py')), # adding utils manually so there is an explicit namespace in site-packages
+        (f'lib/python3.10/site-packages/{package_name}/scripts', glob('scripts/*.py')), # adding scripts manually so theres an explicity namespace
+        (f'lib/python3.10/site-packages/{package_name}/utils', glob('utils/*.py')), # adding utils manually so there is an explicit namespace in site-packages
     ],
     install_requires=[
         'setuptools',
