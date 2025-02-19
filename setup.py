@@ -22,6 +22,7 @@ setup(
         'protobuf',
         'numpy',
         'PyYAML',
+        'colav-protobuf'
     ],
     zip_safe=True,
     maintainer='Ryan McKee',
