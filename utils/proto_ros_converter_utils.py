@@ -1,5 +1,5 @@
-from proto_gen.agentUpdate_pb2 import AgentUpdate as ProtoAgentUpdate
-from proto_gen.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtoObstaclesUpdate
+from colav_protobuf.agentUpdate_pb2 import AgentUpdate as ProtoAgentUpdate
+from colav_protobuf.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtoObstaclesUpdate
 
 from colav_interfaces.msg import ObstaclesConfig as ROSObstaclesUpdate
 from colav_interfaces.msg import AgentConfig as ROSAgentUpdate
@@ -8,7 +8,7 @@ from colav_interfaces.msg import DynamicObstacleConfig
 from colav_interfaces.msg import StaticObstacleConfig
 from colav_interfaces.msg import MissionRequest as ROSMissionRequest
 
-from proto_gen.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
+from colav_protobuf.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
 
 from colav_interfaces.msg import Vessel
 from colav_interfaces.msg import VesselConstraints

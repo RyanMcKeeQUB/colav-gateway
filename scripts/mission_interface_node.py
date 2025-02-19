@@ -11,7 +11,7 @@ import sys
 from action_msgs.msg import GoalStatus
 
 # Protobuf imports
-from proto_gen.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
+from colav_protobuf.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
 
 # ROS interface imports
 # Mission Request

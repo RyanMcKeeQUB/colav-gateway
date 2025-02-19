@@ -1,4 +1,4 @@
-from proto_gen.controllerFeedback_pb2 import ControllerFeedback as ProtoControllerFeedback
+from colav_protobuf.controllerFeedback_pb2 import ControllerFeedback as ProtoControllerFeedback
 from colav_interfaces.msg import ControllerFeedback as ROSControllerFeedback
 
 class ROSTOProtoUtils:

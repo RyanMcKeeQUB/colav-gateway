@@ -8,8 +8,8 @@ from colav_interfaces.msg import AgentConfig as ROSAgentConfigUpdateMSG
 from geometry_msgs.msg import Polygon
 from colav_interfaces.msg import ObstaclesConfig as ROSObstacleConfigUpdateMSG
 
-from proto_gen.agentUpdate_pb2 import AgentUpdate as ProtobufAgentConfigUpdate
-from proto_gen.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
+from colav_protobuf.agentUpdate_pb2 import AgentUpdate as ProtobufAgentConfigUpdate
+from colav_protobuf.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
 from colav_interfaces.msg import DynamicObstacleConfig
 from colav_interfaces.msg import StaticObstacleConfig
 from geometry_msgs.msg import Pose
