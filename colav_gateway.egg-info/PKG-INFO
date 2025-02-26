@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: colav_gateway
+Version: 0.0.1
+Summary: colav_gateway is the gateway to the colav system, providing nodes for managing a planning mission and receiving/providing feedback to external applications utilizing COLAV for autonomous navigation.
+Maintainer: Ryan McKee
+Maintainer-email: r.mckee@qub.ac.uk
+License: MIT
+Requires-Dist: setuptools
+Requires-Dist: protobuf
+Requires-Dist: numpy
+Requires-Dist: PyYAML
+Requires-Dist: colav-protobuf

@@ -1,0 +1,35 @@
+name: colav_gateway ros node CI/CD
+run-name: ${{ github.actor }} is testing colav_gateway ros nodes 🚀
+
+on:
+  push: 
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release: 
+    types: [created, prereleased, published]
+
+jobs: 
+  build: 
+    runs-on: ubuntu-latest
+    container:
+      image: ros:humble-ros-core
+    
+    steps:
+      - name: Install dependencies
+        run: |
+          apt update && apt install -y ros-noetic-desktop-full python3-rosdep
+          rosdep update
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build Package
+        run: |
+          source /opt/ros/humble/setup.bash
+          colcon build
+      
+      - name: Run tests
+        run: |
+          source devel/setup.bash
+          colcon run_tests

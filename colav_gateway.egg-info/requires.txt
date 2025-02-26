@@ -1,0 +1,5 @@
+setuptools
+protobuf
+numpy
+PyYAML
+colav-protobuf
