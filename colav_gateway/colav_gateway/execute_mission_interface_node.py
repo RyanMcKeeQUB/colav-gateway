@@ -1,16 +1,9 @@
-import rclpy
-
-import sys
-from rclpy.logging import get_logger
 import threading
+
+import rclpy
 from rclpy.executors import MultiThreadedExecutor
+from rclpy.logging import get_logger
 
-from ament_index_python.packages import get_package_prefix
-import os
-
-# package_name = 'colav_gateway'
-# install_path = get_package_prefix(package_name=package_name)
-# site_packages_path = os.path.join(install_path, "lib", "python3.10", "site-packages")
 
 from colav_gateway.scripts.mission_interface_node import MissionInterfaceNode
 

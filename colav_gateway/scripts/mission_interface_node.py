@@ -1,46 +1,23 @@
 import socket
-import asyncio
+import os
+import sys
+
 import rclpy
 from rclpy.node import Node
-import argparse
-import json
-import os
-import rclpy.logging
-from enum import Enum
-import sys
-from action_msgs.msg import GoalStatus
-
-# Protobuf imports
-from colav_protobuf.missionRequest_pb2 import MissionRequest as ProtobufMissionRequest
-
-# ROS interface imports
-# Mission Request
-from colav_interfaces.msg import (
-    MissionRequest as RosMissionRequest,
-)  # This is goal msg for service
-from colav_interfaces.action import MissionExecutor
-from std_msgs.msg import ByteMultiArray  # this if feedback message
-
-import numpy as np
-from geometry_msgs.msg import Point32
+from rclpy.logging import get_logger
 from rclpy.action import ActionClient
-from rclpy.impl.rcutils_logger import RcutilsLogger
 
-sys.path.append(
-    os.path.abspath(
-        "/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway"
-    )
-)
-from typing import Any, Tuple
+from colav_interfaces.msg import MissionRequest as RosMissionRequest
+from colav_interfaces.action import MissionExecutor
+
 from colav_gateway.utils.udp_socket_utils import setup_udp_socket
-
 from colav_gateway.utils.proto_ros_converter_utils import ProtoToROSUtils
 
 ROS_NAMESPACE = "colav_gateway"
 NODE_NAME = "mission_request_listener"
 ACTION_NAME = "execute_colav_mission"
 
-logger = rclpy.logging.get_logger(f"{ROS_NAMESPACE}/{NODE_NAME}")
+logger = get_logger(f"{ROS_NAMESPACE}/{NODE_NAME}")
 
 
 class MissionInterfaceNode(Node):

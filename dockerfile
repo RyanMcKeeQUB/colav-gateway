@@ -1,10 +1,12 @@
-
 FROM ros:humble-ros-core-jammy
 
 LABEL project='colav_gateway'
 LABEL maintainer='Ryan McKee <r.mckee@qub.ac.uk>'
 LABEL version='0.0.1'
 LABEL description='ROS-based container for the colav_gateway application, providing a UDP-ROS bridge and managing control flow within the colav_gateway namespace.'
+
+ARG MODE=container
+ENV MODE=${MODE}
 
 # install bootstrap tools
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -63,4 +65,8 @@ EXPOSE 7200/udp
 # Controller feedback
 EXPOSE 7300/udp
 
-ENTRYPOINT [ "/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /home/ros2_ws/install/setup.bash && ros2 launch colav_gateway colav_gateway.launch.py" ]
+# Source ros2_ws and ros2 install/setup.bash
+RUN /bin/bash -c "echo 'source /opt/ros/humble/setup.bash' >> /root/.bashrc && echo 'source /home/ros2_ws/install/setup.bash' >> /root/.bashrc"
+RUN /bin/bash -c "source /root/.bashrc"
+
+ENTRYPOINT [ "/bin/bash", "-c", "if [ \"$MODE\" = \"container"\ ]; then source /opt/ros/humble/setup.bash && source /home/ros2_ws/install/setup.bash && ros2 launch colav_gateway colav_gateway.launch.py; else while true; do sleep 30; done" ]

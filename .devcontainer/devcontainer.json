@@ -6,7 +6,8 @@
 		"dockerfile": "./../dockerfile",
 		"args": {
 			"GIT_USER_NAME": "Ryan McKee",
-			"GIT_USER_EMAIL": "r.mckee@qub.ac.uk"
+			"GIT_USER_EMAIL": "r.mckee@qub.ac.uk",
+			"MODE": "dev"
 		}
 	},
 	"runArgs": [

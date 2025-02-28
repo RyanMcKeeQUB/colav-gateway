@@ -1,44 +1,23 @@
-import rclpy
-import rclpy.logging
 import os
-from colav_interfaces.msg import MissionRequest, Vessel, VesselConstraints, VesselGeometry
-from colav_interfaces.msg import CmdVelYaw, ControllerFeedback, ControlMode, ControlStatus
-from geometry_msgs.msg import Point32
-from colav_interfaces.msg import AgentConfig as ROSAgentConfigUpdateMSG
-from geometry_msgs.msg import Polygon
-from colav_interfaces.msg import ObstaclesConfig as ROSObstacleConfigUpdateMSG
+import asyncio
+import threading
 
-from colav_protobuf.agentUpdate_pb2 import AgentUpdate as ProtobufAgentConfigUpdate
-from colav_protobuf.obstaclesUpdate_pb2 import ObstaclesUpdate as ProtobufObstaclesUpdate
-from colav_interfaces.msg import DynamicObstacleConfig
-from colav_interfaces.msg import StaticObstacleConfig
-from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Point
-from geometry_msgs.msg import Quaternion
+import rclpy
+from rclpy.logging import get_logger
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy
+from rclpy.action import ActionServer, GoalResponse, CancelResponse
+
 from std_msgs.msg import ByteMultiArray
-from std_msgs.msg import Header
 
+from colav_interfaces.msg import MissionRequest, ControllerFeedback, AgentConfig as ROSAgentConfigUpdateMSG, ObstaclesConfig as ROSObstacleConfigUpdateMSG
 from colav_interfaces.action import MissionExecutor
 from colav_interfaces.srv import StartHybridAutomaton
-from rclpy.action import ActionServer, GoalResponse, CancelResponse
-from rclpy.node import Node
-import json
-from typing import Tuple
-from std_msgs.msg import MultiArrayDimension
-import socket
-from rclpy.impl.rcutils_logger import RcutilsLogger
-import time
-import sys
-import asyncio
-sys.path.append(os.path.abspath('/home/3507145@eeecs.qub.ac.uk/Documents/ColavProject/colav_ws/src/colav_server/colav_gateway'))
+
 from colav_gateway.utils.udp_socket_utils import setup_udp_socket
 from colav_gateway.utils.proto_ros_converter_utils import ProtoToROSUtils
-from colav_gateway.utils.msg_validation_utils import validate_mission_request
-from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy
-import threading
 from colav_gateway.utils.ros_proto_converter_utils import ROSTOProtoUtils
-logger = rclpy.logging.get_logger("colav_gateway_logger")
-workspace_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 class ControllerInterfaceNode(Node):
     """The controller interface node creates an action server which when started
