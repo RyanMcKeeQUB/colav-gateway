@@ -28,7 +28,7 @@ class ProtoToROSUtils:
 
             return ROSMissionRequest(
                 mission_tag = protobuf_mission_request.tag,
-                mission_sent_timestamp = protobuf_mission_request.mission_start_timestamp,
+                mission_sent_timestamp = protobuf_mission_request.timestamp,
                 vessel = ProtoToROSUtils.parse_vessel(protobuf_mission_request.vessel),
                 mission_init_position = ProtoToROSUtils.parse_point(protobuf_mission_request.mission_init_position),
                 mission_goal_position = ProtoToROSUtils.parse_point(protobuf_mission_request.mission_goal_position),
@@ -57,17 +57,18 @@ class ProtoToROSUtils:
                 vessel.type
             ),
             dynamic_constraints = VesselConstraints(
-                max_acceleration = vessel.vessel_constraints.max_acceleration,
-                max_deceleration = vessel.vessel_constraints.max_deceleration,
-                max_velocity = vessel.vessel_constraints.max_velocity,
-                min_velocity = vessel.vessel_constraints.min_velocity,
-                max_yaw_rate = vessel.vessel_constraints.max_yaw_rate,
+                max_acceleration = vessel.constraints.max_acceleration,
+                max_deceleration = vessel.constraints.max_deceleration,
+                max_velocity = vessel.constraints.max_velocity,
+                min_velocity = vessel.constraints.min_velocity,
+                max_yaw_rate = vessel.constraints.max_yaw_rate,
             ),
             geometry = VesselGeometry(
-                polyshape = ProtoToROSUtils._parse_polygon(vessel.vessel_geometry.polyshape_points),
-                acceptance_radius = vessel.vessel_geometry.safety_threshold
+                polyshape = None, #ProtoToROSUtils._parse_polygon(vessel.vessel_geometry.polyshape_points),
+                acceptance_radius = vessel.geometry.safety_radius 
             )
         )
+        
     @staticmethod
     def parse_agent_proto(node: Node, msg: bytes) -> ROSAgentUpdate:
         """Parse agent configuration protobuf to ros"""
