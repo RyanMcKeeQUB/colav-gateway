@@ -30,8 +30,8 @@ class ProtoToROSUtils:
                 mission_tag = protobuf_mission_request.tag,
                 mission_sent_timestamp = protobuf_mission_request.timestamp,
                 vessel = ProtoToROSUtils.parse_vessel(protobuf_mission_request.vessel),
-                mission_init_position = ProtoToROSUtils.parse_point(protobuf_mission_request.mission_init_position),
-                mission_goal_position = ProtoToROSUtils.parse_point(protobuf_mission_request.mission_goal_position),
+                mission_init_position = ProtoToROSUtils.parse_point(protobuf_mission_request.init_position),
+                mission_goal_position = ProtoToROSUtils.parse_point(protobuf_mission_request.goal_waypoint.position),
             )
         except Exception as e: 
             raise ValueError(f"Error parsing mission request: {e}") from e
