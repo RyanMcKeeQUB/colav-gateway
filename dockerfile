@@ -45,6 +45,12 @@ COPY ./colav_gateway /home/ros2_ws/src/colav_gateway
 RUN cd /home/ros2_ws/src && \
     git clone https://github.com/RyanMcKeeQUB/colav_interfaces.git || { echo "git clone failed"; exit 1; }
 
+# Build ros pkgs in ros2_ws
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+    cd /home/ros2_ws && \
+    colcon build && \
+    source ./install/setup.bash"
+    
 # Expose ports required for colav_gateway
 # Mission Request
 EXPOSE 7000/udp 
@@ -57,7 +63,4 @@ EXPOSE 7200/udp
 # Controller feedback
 EXPOSE 7300/udp
 
-COPY ./bootstrap_colav_gateway.sh /home/bootstrap_colav_gateway.sh
-RUN chmod +x /home/bootstrap_colav_gateway.sh
-ENTRYPOINT [ "/home/bootstrap_colav_gateway.sh" ]
-# CMD ["tail", "-f", "/dev/null"]
+ENTRYPOINT [ "/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /home/ros2_ws/install/setup.bash && ros2 launch colav_gateway colav_gateway.launch.py" ]
