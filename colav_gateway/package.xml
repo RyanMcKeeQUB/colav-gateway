@@ -26,10 +26,10 @@
   <exec_depend>python3-socket</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
 
-
   <!--external dependencies-->
   <exec_depend>python3-protobuf</exec_depend>
   <exec_depend>colav-protobuf</exec_depend>
+  <exec_depend>colav-protobuf-utils</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

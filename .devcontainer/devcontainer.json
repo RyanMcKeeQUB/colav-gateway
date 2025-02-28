@@ -1,0 +1,43 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "colav_gateway_dev_container",
+	"build": {
+		"dockerfile": "./../dockerfile",
+		"args": {
+			"GIT_USER_NAME": "Ryan McKee",
+			"GIT_USER_EMAIL": "r.mckee@qub.ac.uk"
+		}
+	},
+	"runArgs": [
+		//"--privileged",
+		"--network", "bridge", // bridged connection puts the container on the same network as the host meaning all ports can be accessed via localhost on container or external
+		"-p", "7000:7000/udp",
+		"-p", "7001:7001/udp",
+		"-p", "7100:7100/udp",
+		"-p", "7200:7200/udp",
+		"-p", "7300:7300/udp",
+	],
+	"forwardPorts": [7000, 7001, 7100, 7200, 7300],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-toolsai.jupyter",
+				"ms-azuretools.vscode-docker",
+				"redhat.vscode-xml",
+				"redhat.vscode-yaml",
+				"ms-python.pylint"
+			]
+		},
+		"settings": {
+			"terminal.integrated.shell.linux": "/bin/bash",
+			"python.languageServer": "Pylance",
+			"python.analysis.typeCheckingMode": "basic",
+			"python.formatting.provider": "black",
+			"python.formatting.autoFormatOnSave": true
+		},
+		"remoteUser": "vscode",
+		"postCreateCommand": "git config --global user.name \"$GIT_USER_NAME\" && git config --global user.email \"$GIT_USER_EMAIL\" && source /root/.bashrc && echo 'Container setup complete!'"
+	}
+}
