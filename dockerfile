@@ -41,8 +41,13 @@ pip \
 RUN pip install colav-protobuf-utils==0.0.2
 
 RUN mkdir -p /home/ros2_ws/src
-COPY ./colav_gateway /home/ros2_ws/src/colav_gateway
 
+# Create colav_gateway directory and copy files if MODE is container
+RUN if [ "$MODE" = "container" ]; then \
+        mkdir -p /home/ros2_ws/src/colav_gateway && \
+        cp -r ./colav_gateway /home/ros2_ws/src/colav_gateway; \
+    fi
+    
 # Create colcon pkg and move colav_gateway to src
 RUN cd /home/ros2_ws/src && \
     git clone https://github.com/RyanMcKeeQUB/colav_interfaces.git || { echo "git clone failed"; exit 1; }
@@ -69,4 +74,4 @@ EXPOSE 7300/udp
 RUN /bin/bash -c "echo 'source /opt/ros/humble/setup.bash' >> /root/.bashrc && echo 'source /home/ros2_ws/install/setup.bash' >> /root/.bashrc"
 RUN /bin/bash -c "source /root/.bashrc"
 
-ENTRYPOINT [ "/bin/bash", "-c", "if [ \"$MODE\" = \"container"\ ]; then source /opt/ros/humble/setup.bash && source /home/ros2_ws/install/setup.bash && ros2 launch colav_gateway colav_gateway.launch.py; else while true; do sleep 30; done" ]
+ENTRYPOINT [ "/bin/bash", "-c", "if [ \"$MODE\" = \"container\" ]; then source /opt/ros/humble/setup.bash && source /home/ros2_ws/install/setup.bash && ros2 launch colav_gateway colav_gateway.launch.py; else while true; do sleep 30; done" ]

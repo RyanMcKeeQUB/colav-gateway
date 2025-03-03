@@ -2,8 +2,10 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
 	"name": "colav_gateway_dev_container",
+	"workspaceFolder": "/workspace/ros2_ws/src/colav_gateway",
+	"workspaceMount": "source=${localWorkspaceFolder}/colav_gateway,target=/workspace/ros2_ws/src/colav_gateway,type=bind,consistency=cached",
 	"build": {
-		"dockerfile": "./../dockerfile",
+		"dockerfile": "../dockerfile",
 		"args": {
 			"GIT_USER_NAME": "Ryan McKee",
 			"GIT_USER_EMAIL": "r.mckee@qub.ac.uk",
@@ -17,7 +19,7 @@
 		"-p", "7001:7001/udp",
 		"-p", "7100:7100/udp",
 		"-p", "7200:7200/udp",
-		"-p", "7300:7300/udp",
+		"-p", "7300:7300/udp"
 	],
 	"forwardPorts": [7000, 7001, 7100, 7200, 7300],
 	"customizations": {
